@@ -41,10 +41,21 @@ def _acquire_lock():
         return False
 
 
+def _setup_ssl():
+    """Set SSL certificate path for GDAL /vsicurl/ HTTPS requests."""
+    try:
+        import certifi
+        os.environ.setdefault("SSL_CERT_FILE", certifi.where())
+        os.environ.setdefault("CURL_CA_BUNDLE", certifi.where())
+    except ImportError:
+        pass
+
+
 def main():
     if not _acquire_lock():
         sys.exit(0)
 
+    _setup_ssl()
     port = _find_free_port()
     token = secrets.token_urlsafe(32)
     app = create_app(token)
