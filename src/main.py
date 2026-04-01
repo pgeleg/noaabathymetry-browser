@@ -45,8 +45,14 @@ def _setup_ssl():
     """Set SSL certificate path for GDAL /vsicurl/ HTTPS requests."""
     try:
         import certifi
-        os.environ.setdefault("SSL_CERT_FILE", certifi.where())
-        os.environ.setdefault("CURL_CA_BUNDLE", certifi.where())
+        ca = certifi.where()
+        os.environ.setdefault("SSL_CERT_FILE", ca)
+        os.environ.setdefault("CURL_CA_BUNDLE", ca)
+        os.environ.setdefault("REQUESTS_CA_BUNDLE", ca)
+        # Also set via GDAL config for vsicurl
+        from osgeo import gdal
+        gdal.SetConfigOption("GDAL_CURL_CA_BUNDLE", ca)
+        gdal.SetConfigOption("CURL_CA_BUNDLE", ca)
     except ImportError:
         pass
 
