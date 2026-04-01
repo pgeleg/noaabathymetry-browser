@@ -26,6 +26,7 @@ def _acquire_lock():
 
     The lock is held as long as the process is alive — the OS releases
     it automatically on crash, kill, or os._exit().
+    If locking fails, check if the PID in the lock file is still alive.
     """
     global _lock_fh
     try:
@@ -36,9 +37,28 @@ def _acquire_lock():
         else:
             import fcntl
             fcntl.flock(_lock_fh, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        _lock_fh.write(str(os.getpid()))
+        _lock_fh.flush()
         return True
     except (IOError, OSError):
-        return False
+        # Lock held — check if the process is actually alive
+        try:
+            _lock_fh.close()
+            with open(_LOCK_FILE, "r") as f:
+                pid = int(f.read().strip())
+            os.kill(pid, 0)
+            return False  # Process is alive
+        except (ValueError, OSError, ProcessLookupError):
+            # Stale lock — force acquire
+            _lock_fh = open(_LOCK_FILE, "w")
+            if sys.platform == "win32":
+                pass  # Windows already released on close
+            else:
+                import fcntl
+                fcntl.flock(_lock_fh, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            _lock_fh.write(str(os.getpid()))
+            _lock_fh.flush()
+            return True
 
 
 def _setup_ssl():
