@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "noaabathymetry-browser"
+version = "0.1.0"
+requires-python = ">=3.10"
+description = "Browser-based GUI for NOAA National Bathymetric Source tools"
+dependencies = [
+    "noaabathymetry",
+    "aiohttp>=3.9",
+]
+
+[project.scripts]
+nbs-gui = "src.main:main"
