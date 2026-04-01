@@ -16,10 +16,12 @@ jobs:
         include:
           - os: macos-latest
             name: macOS
-            artifact: National.Bathymetric.Source.macOS
+            artifact: noaabathymetry-macOS
+            exe_name: noaabathymetry
           - os: windows-latest
             name: Windows
-            artifact: National.Bathymetric.Source.Windows
+            artifact: noaabathymetry-Windows.exe
+            exe_name: noaabathymetry.exe
 
     runs-on: ${{ matrix.os }}
     name: Build (${{ matrix.name }})
@@ -52,38 +54,22 @@ jobs:
           pip install pillow
           python -c "from PIL import Image; img=Image.open('assets/NOAA-1.png'); img.save('assets/NOAA.ico', format='ICO', sizes=[(16,16),(32,32),(48,48),(64,64),(128,128),(256,256)])"
 
-      - name: Generate macOS icon
-        if: runner.os == 'macOS'
-        run: |
-          mkdir -p assets/NOAA.iconset
-          for size in 16 32 64 128 256 512; do
-            sips -z $size $size assets/NOAA-1.png --out assets/NOAA.iconset/icon_${size}x${size}.png 2>/dev/null
-          done
-          cp assets/NOAA.iconset/icon_32x32.png assets/NOAA.iconset/icon_16x16@2x.png
-          cp assets/NOAA.iconset/icon_64x64.png assets/NOAA.iconset/icon_32x32@2x.png
-          cp assets/NOAA.iconset/icon_256x256.png assets/NOAA.iconset/icon_128x128@2x.png
-          cp assets/NOAA.iconset/icon_512x512.png assets/NOAA.iconset/icon_256x256@2x.png
-          iconutil -c icns assets/NOAA.iconset
-          rm -rf assets/NOAA.iconset
-
       - name: Build with PyInstaller
         run: pyinstaller nbs_browser.spec
 
-      - name: Zip macOS
+      - name: Rename macOS executable
         if: runner.os == 'macOS'
-        run: |
-          cd dist
-          zip -r -y -q "../${{ matrix.artifact }}.zip" "National Bathymetric Source.app"
+        run: mv "dist/${{ matrix.exe_name }}" "dist/${{ matrix.artifact }}"
 
-      - name: Zip Windows
+      - name: Rename Windows executable
         if: runner.os == 'Windows'
         shell: pwsh
-        run: Compress-Archive -Path "dist\NBS Bathymetry" -DestinationPath "${{ matrix.artifact }}.zip"
+        run: Move-Item "dist\${{ matrix.exe_name }}" "dist\${{ matrix.artifact }}"
 
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact }}
-          path: ${{ matrix.artifact }}.zip
+          path: dist/${{ matrix.artifact }}
 
   release:
     needs: build
@@ -98,5 +84,5 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          files: artifacts/**/*.zip
+          files: artifacts/**/*
           generate_release_notes: true

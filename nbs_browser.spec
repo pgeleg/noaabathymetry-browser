@@ -2,6 +2,7 @@
 """PyInstaller spec for National Bathymetric Source Browser GUI.
 
 No Qt/PySide6 — uses aiohttp + system browser.
+Single file executable on both platforms.
 
 Usage:
     pyinstaller nbs_browser.spec
@@ -16,6 +17,7 @@ from PyInstaller.utils.hooks import collect_data_files, collect_submodules
 # ── Platform ──────────────────────────────────────────
 
 is_win = sys.platform == "win32"
+is_mac = sys.platform == "darwin"
 
 # ── Paths ──────────────────────────────────────────────
 
@@ -30,7 +32,7 @@ else:
     gdal_data = env / "share" / "gdal"
     proj_data = env / "share" / "proj"
 
-# ── Data files ─────────────────────────────────────────
+# ── Data files ───────────────────────────���─────────────
 
 datas = [
     # Web assets
@@ -75,6 +77,15 @@ os.makedirs("build", exist_ok=True)
 with open(runtime_hook_path, "w") as f:
     f.write(runtime_hook_content)
 
+# ── Icon ──────────────────────────────────────────────
+
+if is_win and os.path.exists("assets/NOAA.ico"):
+    exe_icon = "assets/NOAA.ico"
+elif os.path.exists("assets/NOAA-1.png"):
+    exe_icon = "assets/NOAA-1.png"
+else:
+    exe_icon = None
+
 # ── Analysis ───────────────────────────────────────────
 
 a = Analysis(
@@ -103,30 +114,15 @@ pyz = PYZ(a.pure)
 exe = EXE(
     pyz,
     a.scripts,
+    a.binaries,
+    a.datas,
     [],
-    exclude_binaries=True,
-    name="NBS Bathymetry",
+    name="noaabathymetry",
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
     upx=False,
+    onefile=True,
     console=False,
-    icon="assets/NOAA-1.png" if not is_win else "assets/NOAA.ico",
+    icon=exe_icon,
 )
-
-coll = COLLECT(
-    exe,
-    a.binaries,
-    a.datas,
-    strip=False,
-    upx=False,
-    name="NBS Bathymetry",
-)
-
-if sys.platform == "darwin":
-    app = BUNDLE(
-        coll,
-        name="National Bathymetric Source.app",
-        icon="assets/NOAA.icns",
-        bundle_identifier="gov.noaa.nbs.bathymetry",
-    )
