@@ -38,6 +38,13 @@ datas = [
 datas += collect_data_files("botocore")
 datas += collect_data_files("certifi")
 
+# SSL libraries needed by GDAL's libcurl for HTTPS
+import glob
+lib_dir = str(env / "lib")
+ssl_bins = []
+for pattern in ["libssl*", "libcrypto*"]:
+    ssl_bins += [(f, ".") for f in glob.glob(os.path.join(lib_dir, pattern)) if not os.path.islink(f)]
+
 hiddenimports = [
     *collect_submodules("nbs.noaabathymetry"),
     "osgeo", "osgeo.gdal", "osgeo.ogr", "osgeo.osr",
@@ -72,7 +79,7 @@ else:
 a = Analysis(
     ["src/main.py"],
     pathex=[],
-    binaries=[],
+    binaries=ssl_bins,
     datas=datas,
     hiddenimports=hiddenimports,
     hookspath=[],

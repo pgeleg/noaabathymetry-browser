@@ -41,7 +41,7 @@ jobs:
       - name: Install dependencies
         run: |
           conda install -y gdal
-          pip install aiohttp
+          pip install aiohttp certifi
           pip install git+https://github.com/noaa-ocs-hydrography/BlueTopo.git@dev
           pip install pyinstaller
           pip install -e .
