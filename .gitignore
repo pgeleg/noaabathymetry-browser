@@ -1,0 +1,31 @@
+# Build / distribution
+dist
+build
+*.egg
+*.egg-info
+*.whl
+
+# Python
+__pycache__
+*.pyc
+*.so
+
+# Testing
+.pytest_cache
+.coverage
+htmlcov
+
+# Virtual environments
+.venv
+venv
+env
+
+# IDE
+.idea
+.vscode
+
+# Generated icons
+assets/NOAA.iconset
+
+# OS
+.DS_Store

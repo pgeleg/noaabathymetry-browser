@@ -1,0 +1,112 @@
+name: Build & Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: macos-15-intel
+            name: macOS-Intel
+          - os: macos-latest
+            name: macOS-ARM
+          - os: windows-latest
+            name: Windows
+
+    runs-on: ${{ matrix.os }}
+    name: Build (${{ matrix.name }})
+
+    defaults:
+      run:
+        shell: bash -l {0}
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - uses: conda-incubator/setup-miniconda@fc2d68f6413eb2d87b895e92f8584b5b94a10167 # v3
+        with:
+          python-version: "3.12"
+          channels: conda-forge
+          activate-environment: build
+          miniforge-version: latest
+          conda-remove-defaults: true
+
+      - name: Install dependencies
+        run: |
+          conda install -y gdal libgdal-hdf5
+          pip install aiohttp==3.13.5 certifi==2026.2.25 pyinstaller==6.19.0
+          pip install noaabathymetry==0.8.1
+          pip install .
+
+      - name: Generate Windows icon
+        if: runner.os == 'Windows'
+        run: |
+          pip install pillow==12.2.0
+          python assets/generate_icon.py ico
+
+      - name: Generate macOS icon
+        if: runner.os == 'macOS'
+        run: |
+          pip install pillow==12.2.0
+          python assets/generate_icon.py iconset
+
+      - name: Build with PyInstaller
+        run: pyinstaller noaabathymetry_ui.spec
+
+      - name: Compute checksums
+        run: |
+          if [ "$RUNNER_OS" == "macOS" ]; then
+            cd dist && zip -r -y -q "../noaabathymetry-${{ matrix.name }}.zip" "noaabathymetry.app"
+            cd .. && shasum -a 256 "noaabathymetry-${{ matrix.name }}.zip" > "noaabathymetry-${{ matrix.name }}.zip.sha256"
+          else
+            shasum -a 256 "dist/noaabathymetry.exe" > "dist/noaabathymetry.exe.sha256"
+          fi
+
+      - name: Upload macOS
+        if: runner.os == 'macOS'
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7
+        with:
+          name: noaabathymetry-${{ matrix.name }}
+          path: |
+            noaabathymetry-${{ matrix.name }}.zip
+            noaabathymetry-${{ matrix.name }}.zip.sha256
+
+      - name: Upload Windows
+        if: runner.os == 'Windows'
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7
+        with:
+          name: noaabathymetry-Windows
+          path: |
+            dist/noaabathymetry.exe
+            dist/noaabathymetry.exe.sha256
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    # TODO: Sign releases with GPG or GitHub attestation
+
+    steps:
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          path: artifacts
+
+      - name: Create Release
+        uses: softprops/action-gh-release@153bb8e04406b158c6c84fc1615b65b24149a1fe # v2
+        with:
+          files: |
+            artifacts/noaabathymetry-macOS-Intel/noaabathymetry-macOS-Intel.zip
+            artifacts/noaabathymetry-macOS-Intel/noaabathymetry-macOS-Intel.zip.sha256
+            artifacts/noaabathymetry-macOS-ARM/noaabathymetry-macOS-ARM.zip
+            artifacts/noaabathymetry-macOS-ARM/noaabathymetry-macOS-ARM.zip.sha256
+            artifacts/noaabathymetry-Windows/noaabathymetry.exe
+            artifacts/noaabathymetry-Windows/noaabathymetry.exe.sha256
+          generate_release_notes: true

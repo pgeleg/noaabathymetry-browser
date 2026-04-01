@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>National Bathymetric Source</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+    <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" />
+</head>
+<body>
+    <div id="topbar">
+        <button class="icon-btn active" id="btn-view-app" onclick="switchView('app')" title="App">⌂</button>
+        <button class="icon-btn" id="btn-view-docs" onclick="switchView('docs')" title="Docs">?</button>
+        <div class="topbar-divider"></div>
+        <div class="topbar-item">
+            <div style="display:flex;gap:4px;align-items:center;">
+                <span class="topbar-label">Your Project:</span>
+                <div style="flex:1;position:relative;">
+                    <div class="dir-input-wrap">
+                        <input type="text" id="project-dir" placeholder="/path/to/project"
+                               oninput="onDirInput()" onfocus="onDirFocus()" onclick="onDirClick()" autocomplete="off" />
+                        <button id="btn-open-folder" class="dir-open-btn" onclick="openProjectFolder()" title="Show in Explorer" style="display:none">↗</button>
+                    </div>
+                    <div id="dir-suggestions" class="suggestions"></div>
+                </div>
+                <button onclick="browseDir()" style="width:auto;padding:6px 14px;min-width:auto;" title="Browse for a project folder">Browse</button>
+            </div>
+        </div>
+        <div class="topbar-item" style="min-width:140px;max-width:180px;position:relative;">
+            <div id="source-select" class="custom-select" onclick="toggleSourceDropdown()">
+                <span id="source-label">BlueTopo</span>
+                <span class="select-arrow">▾</span>
+            </div>
+            <div id="source-dropdown" class="custom-dropdown">
+                <div class="dropdown-item" data-value="bluetopo" onclick="pickSource(this)">BlueTopo</div>
+                <div class="dropdown-item" data-value="modeling" onclick="pickSource(this)">Modeling</div>
+                <div class="dropdown-item" data-value="bag" onclick="pickSource(this)">BAG</div>
+                <div class="dropdown-item" data-value="s102v21" onclick="pickSource(this)">S102 v2.1</div>
+                <div class="dropdown-item" data-value="s102v22" onclick="pickSource(this)">S102 v2.2</div>
+                <div class="dropdown-item" data-value="s102v30" onclick="pickSource(this)">S102 v3.0</div>
+            </div>
+            <input type="hidden" id="data-source" value="bluetopo" />
+        </div>
+    </div>
+
+    <div id="main">
+        <div id="map"></div>
+
+        <div id="docs-overlay" style="display:none;">
+            <iframe id="docs-frame" src="about:blank"></iframe>
+        </div>
+    </div>
+
+    <div id="log-header" onclick="toggleLog()">
+        <div class="log-dot" id="log-dot"></div>
+        <span>Output</span>
+        <span class="log-command" id="log-command"></span>
+        <span class="bar-coords" id="bar-coords"></span>
+        <span class="log-grip"></span>
+    </div>
+    <div id="log-pane">
+        <pre id="results"></pre>
+    </div>
+
+    <div id="command-area">
+        <div class="command-left">
+            <div class="command-bars">
+                <div class="commandbar" id="fetchbar">
+                    <button id="btn-fetch" class="command-btn" onclick="runFetch()" title="Download tiles from NBS to your project folder.">Fetch</button>
+                    <div class="commandbar-field" style="position:relative;">
+                        <span>Geometry</span>
+                        <input type="text" id="opt-geometry" placeholder="draw on map, or path / geojson / WKT / bbox" oninput="onGeomInput()" autocomplete="off">
+                        <button class="browse-btn" onclick="browseGeometry()" title="Browse for geometry file">…</button>
+                        <div id="geom-suggestions" class="suggestions"></div>
+                    </div>
+                    <div class="commandbar-field">
+                        <span>Only Resolution(s)</span>
+                        <input type="text" id="opt-fetch-resolution" placeholder="e.g. 4,8 (meters)">
+                    </div>
+                </div>
+                <div class="commandbar" id="mosaicbar">
+                    <button id="btn-mosaic" class="command-btn" onclick="runMosaic()" title="Build per-UTM-zone mosaics from your downloaded tiles.">Mosaic</button>
+                    <label class="switch-label" onclick="document.getElementById('opt-hillshade').classList.toggle('on')">
+                        Hillshade
+                        <span class="switch" id="opt-hillshade"><span class="switch-knob"></span></span>
+                    </label>
+                    <div class="commandbar-field">
+                        <span>Resolution</span>
+                        <input type="text" id="opt-resolution" placeholder="auto" inputmode="numeric">
+                    </div>
+                    <div class="commandbar-field">
+                        <span>Workers</span>
+                        <input type="text" id="opt-workers" placeholder="auto" inputmode="numeric" maxlength="2">
+                    </div>
+                    <span class="commandbar-disclaimer"><strong>Disclaimer:</strong> More workers increase memory usage.<br>Mosaics require significant disk space.</span>
+                </div>
+                <div class="commandbar" id="exportbar">
+                    <button id="btn-export" class="command-btn" onclick="runExport()" title="Validate then package your project into a portable zip. Recipients can use the files directly and even continue the project themselves if they wish, picking up where you left off.">Export</button>
+                    <label class="switch-label" onclick="toggleExportMosaics()">
+                        Include Mosaics
+                        <span class="switch on" id="opt-export-mosaics"><span class="switch-knob"></span></span>
+                    </label>
+                    <label class="switch-label" onclick="document.getElementById('opt-export-repair').classList.toggle('on')" title="If verification finds tiles with mismatched checksums, flag them so the next Fetch re-downloads them">
+                        Flag for Repair
+                        <span class="switch" id="opt-export-repair"><span class="switch-knob"></span></span>
+                    </label>
+                    <span class="commandbar-disclaimer"><strong>Flag for Repair:</strong> If checksums mismatch,<br>flag tiles so the next Fetch re-downloads them.</span>
+                </div>
+            </div>
+            <div id="statusbar">
+                <span class="left" id="statusbar-left">Ready</span>
+            </div>
+        </div>
+        <div class="command-logo">
+            <img src="/static/NOAA-2.png" alt="NOAA">
+            <span class="logo-branding">National Bathymetric Source</span>
+        </div>
+    </div>
+
+    <div id="toast-container"></div>
+
+    <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+    <script src="/static/bridge-ws.js"></script>
+    <script src="/static/map.js"></script>
+    <script src="/static/panels.js"></script>
+</body>
+</html>

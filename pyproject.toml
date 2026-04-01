@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "noaabathymetry-ui"
+version = "0.1.0"
+requires-python = ">=3.10"
+description = "Browser-based GUI for noaabathymetry"
+dependencies = [
+    "noaabathymetry==0.8.1",
+    "aiohttp==3.13.5",
+    "certifi==2026.2.25",
+]
+
+[project.scripts]
+nbs-gui = "src.main:main"
