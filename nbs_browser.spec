@@ -1,11 +1,8 @@
 # -*- mode: python ; coding: utf-8 -*-
 """PyInstaller spec for National Bathymetric Source Browser GUI.
 
-No Qt/PySide6 — uses aiohttp + system browser.
-Single file executable on both platforms.
-
-Usage:
-    pyinstaller nbs_browser.spec
+macOS: .app bundle (looks like single file in Finder)
+Windows: single .exe
 """
 
 import os
@@ -14,12 +11,8 @@ from pathlib import Path
 
 from PyInstaller.utils.hooks import collect_data_files, collect_submodules
 
-# ── Platform ──────────────────────────────────────────
-
 is_win = sys.platform == "win32"
 is_mac = sys.platform == "darwin"
-
-# ── Paths ──────────────────────────────────────────────
 
 env = Path(sys.prefix)
 src_dir = Path("src")
@@ -32,24 +25,18 @@ else:
     gdal_data = env / "share" / "gdal"
     proj_data = env / "share" / "proj"
 
-# ── Data files ───────────────────────────���─────────────
-
 datas = [
-    # Web assets
     (str(web_dir / "index.html"), "src/web"),
     (str(web_dir / "styles.css"), "src/web"),
     (str(web_dir / "map.js"), "src/web"),
     (str(web_dir / "panels.js"), "src/web"),
     (str(web_dir / "bridge-ws.js"), "src/web"),
-    # GDAL + PROJ data
     (str(gdal_data), "share/gdal"),
     (str(proj_data), "share/proj"),
 ]
 
 datas += collect_data_files("botocore")
 datas += collect_data_files("certifi")
-
-# ── Hidden imports ─────────────────────────────────────
 
 hiddenimports = [
     *collect_submodules("nbs.noaabathymetry"),
@@ -61,8 +48,6 @@ hiddenimports = [
     "tqdm",
     "tkinter", "tkinter.filedialog",
 ]
-
-# ── Runtime hooks ──────────────────────────────────────
 
 runtime_hook_content = '''
 import os, sys
@@ -77,16 +62,12 @@ os.makedirs("build", exist_ok=True)
 with open(runtime_hook_path, "w") as f:
     f.write(runtime_hook_content)
 
-# ── Icon ──────────────────────────────────────────────
-
 if is_win and os.path.exists("assets/NOAA.ico"):
     exe_icon = "assets/NOAA.ico"
 elif os.path.exists("assets/NOAA-1.png"):
     exe_icon = "assets/NOAA-1.png"
 else:
     exe_icon = None
-
-# ── Analysis ───────────────────────────────────────────
 
 a = Analysis(
     ["src/main.py"],
@@ -97,32 +78,47 @@ a = Analysis(
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[runtime_hook_path],
-    excludes=[
-        "matplotlib",
-        "numpy.distutils",
-        "test",
-        "unittest",
-        "PySide6",
-        "PyQt5",
-        "PyQt6",
-    ],
+    excludes=["matplotlib", "numpy.distutils", "test", "unittest", "PySide6", "PyQt5", "PyQt6"],
     noarchive=False,
 )
 
 pyz = PYZ(a.pure)
 
-exe = EXE(
-    pyz,
-    a.scripts,
-    a.binaries,
-    a.datas,
-    [],
-    name="noaabathymetry",
-    debug=False,
-    bootloader_ignore_signals=False,
-    strip=False,
-    upx=False,
-    onefile=True,
-    console=False,
-    icon=exe_icon,
-)
+if is_win:
+    # Windows: single .exe
+    exe = EXE(
+        pyz, a.scripts, a.binaries, a.datas, [],
+        name="noaabathymetry",
+        debug=False,
+        strip=False,
+        upx=False,
+        onefile=True,
+        console=False,
+        icon=exe_icon,
+    )
+else:
+    # macOS: .app bundle
+    exe = EXE(
+        pyz, a.scripts, [],
+        exclude_binaries=True,
+        name="noaabathymetry",
+        debug=False,
+        strip=False,
+        upx=False,
+        console=False,
+        icon=exe_icon,
+    )
+
+    coll = COLLECT(
+        exe, a.binaries, a.datas,
+        strip=False,
+        upx=False,
+        name="noaabathymetry",
+    )
+
+    app = BUNDLE(
+        coll,
+        name="noaabathymetry.app",
+        icon="assets/NOAA.icns" if os.path.exists("assets/NOAA.icns") else None,
+        bundle_identifier="gov.noaa.nbs.bathymetry",
+    )
