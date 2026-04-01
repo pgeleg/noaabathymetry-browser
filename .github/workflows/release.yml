@@ -14,8 +14,10 @@ jobs:
     strategy:
       matrix:
         include:
+          - os: macos-13
+            name: macOS-Intel
           - os: macos-latest
-            name: macOS
+            name: macOS-ARM
           - os: windows-latest
             name: Windows
 
@@ -71,14 +73,14 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           cd dist
-          zip -r -y -q "../noaabathymetry-macOS.zip" "noaabathymetry.app"
+          zip -r -y -q "../noaabathymetry-${{ matrix.name }}.zip" "noaabathymetry.app"
 
       - name: Upload macOS
         if: runner.os == 'macOS'
         uses: actions/upload-artifact@v4
         with:
-          name: noaabathymetry-macOS
-          path: noaabathymetry-macOS.zip
+          name: noaabathymetry-${{ matrix.name }}
+          path: noaabathymetry-${{ matrix.name }}.zip
 
       - name: Upload Windows
         if: runner.os == 'Windows'
@@ -101,6 +103,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            artifacts/noaabathymetry-macOS/noaabathymetry-macOS.zip
+            artifacts/noaabathymetry-macOS-Intel/noaabathymetry-macOS-Intel.zip
+            artifacts/noaabathymetry-macOS-ARM/noaabathymetry-macOS-ARM.zip
             artifacts/noaabathymetry-Windows/noaabathymetry.exe
           generate_release_notes: true
