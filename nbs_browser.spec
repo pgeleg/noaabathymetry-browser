@@ -55,6 +55,10 @@ if getattr(sys, '_MEIPASS', None):
     base = sys._MEIPASS
     os.environ.setdefault("GDAL_DATA", os.path.join(base, "share", "gdal"))
     os.environ.setdefault("PROJ_LIB", os.path.join(base, "share", "proj"))
+    # SSL certificates for GDAL /vsicurl/ HTTPS requests
+    import certifi
+    os.environ.setdefault("SSL_CERT_FILE", certifi.where())
+    os.environ.setdefault("CURL_CA_BUNDLE", certifi.where())
 '''
 
 runtime_hook_path = os.path.join("build", "_rthook_gdal.py")
