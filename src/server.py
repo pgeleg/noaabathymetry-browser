@@ -106,7 +106,10 @@ async def websocket_handler(request):
 
 
 def _shutdown():
-    os._exit(0)
+    """Attempt graceful shutdown, force-kill after 3 seconds."""
+    import threading
+    threading.Timer(3, lambda: os._exit(0)).start()
+    raise SystemExit(0)
 
 
 # Allowed methods and their expected argument names

@@ -15,10 +15,13 @@ _LOCK_FILE = os.path.join(tempfile.gettempdir(), "nbs_bathymetry.lock")
 _lock_fh = None
 
 
-def _find_free_port():
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.bind(("127.0.0.1", 0))
-        return s.getsockname()[1]
+def _bind_socket():
+    """Bind to a free port on localhost. Returns the socket (kept open)."""
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.bind(("127.0.0.1", 0))
+    assert sock.getsockname()[0] == "127.0.0.1", "Server must bind to localhost only"
+    sock.listen(1)
+    return sock
 
 
 def _acquire_lock():
@@ -82,7 +85,9 @@ def main():
         sys.exit(0)
 
     _setup_ssl()
-    port = _find_free_port()
+    sock = _bind_socket()
+    assert sock.getsockname()[0] == "127.0.0.1", "Server must bind to localhost only"
+    port = sock.getsockname()[1]
     token = secrets.token_urlsafe(32)
     app = create_app(token)
 
@@ -90,7 +95,7 @@ def main():
         webbrowser.open(f"http://127.0.0.1:{port}?token={token}")
 
     app.on_startup.append(on_startup)
-    web.run_app(app, host="127.0.0.1", port=port, print=None)
+    web.run_app(app, sock=sock, print=None)
 
 
 if __name__ == "__main__":
