@@ -1,4 +1,4 @@
-# noaabathymetry gui
+# noaabathymetry-gui
 
 Desktop GUI wrapper for the [noaabathymetry](https://github.com/noaa-ocs-hydrography/BlueTopo) Python package.
 
