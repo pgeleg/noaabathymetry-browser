@@ -119,7 +119,9 @@ function finishDrawing() {
         coords.push(coords[0]); // close the ring
         var geom = { type: "Polygon", coordinates: [coords] };
         currentGeometry = JSON.stringify(geom);
-        document.getElementById("opt-geometry").value = currentGeometry;
+        var input = document.getElementById("opt-geometry");
+        input.value = currentGeometry;
+        input.scrollLeft = input.scrollWidth;
         updateDrawLayer();
     }
 }
@@ -179,7 +181,9 @@ function finishRect(start, end) {
     ];
     var geom = { type: "Polygon", coordinates: [coords] };
     currentGeometry = JSON.stringify(geom);
-    document.getElementById("opt-geometry").value = currentGeometry;
+    var input = document.getElementById("opt-geometry");
+    input.value = currentGeometry;
+    input.scrollLeft = input.scrollWidth;
     drawPoints = coords.slice(0, 4);
     updateDrawLayer();
 }
@@ -674,6 +678,13 @@ map.on("mousemove", function (e) {
 // ── Re-add sources after basemap change ──────────────
 
 function readdAllSources() {
+    // Re-add draw layers
+    map.addSource("draw-polygon", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+    map.addSource("draw-points", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+    map.addLayer({ id: "draw-fill", type: "fill", source: "draw-polygon", paint: { "fill-color": "rgba(100,140,255,0.15)", "fill-opacity": 1 } });
+    map.addLayer({ id: "draw-line", type: "line", source: "draw-polygon", paint: { "line-color": "rgba(100,140,255,0.8)", "line-width": 2, "line-dasharray": [3, 2] } });
+    map.addLayer({ id: "draw-vertices", type: "circle", source: "draw-points", paint: { "circle-radius": 4, "circle-color": "rgba(100,140,255,1)", "circle-stroke-color": "white", "circle-stroke-width": 1.5 } });
+
     if (remoteActive && remoteCache.data) {
         addRemoteToMap(remoteCache.data);
     }
@@ -682,6 +693,7 @@ function readdAllSources() {
     }
     if (gridVisible) addGridToMap();
     if (utmVisible) addUtmToMap();
+    raiseDrawLayers();
 }
 
 // ── Legend ────────────────────────────────────────────

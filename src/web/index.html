@@ -56,35 +56,41 @@
         <pre id="results"></pre>
     </div>
 
-    <div class="commandbar" id="fetchbar">
-        <button id="btn-fetch" class="command-btn" onclick="runFetch()">Fetch</button>
-        <div class="commandbar-field" style="position:relative;">
-            <span>Geometry</span>
-            <input type="text" id="opt-geometry" placeholder="draw on map, or path / geojson / WKT / bbox" oninput="onGeomInput()" autocomplete="off">
-            <button class="browse-btn" onclick="browseGeometry()" title="Browse for geometry file">…</button>
-            <div id="geom-suggestions" class="suggestions"></div>
+    <div id="command-area">
+        <div class="command-bars">
+            <div class="commandbar" id="fetchbar">
+                <button id="btn-fetch" class="command-btn" onclick="runFetch()">Fetch</button>
+                <div class="commandbar-field" style="position:relative;">
+                    <span>Geometry</span>
+                    <input type="text" id="opt-geometry" placeholder="draw on map, or path / geojson / WKT / bbox" oninput="onGeomInput()" autocomplete="off">
+                    <button class="browse-btn" onclick="browseGeometry()" title="Browse for geometry file">…</button>
+                    <div id="geom-suggestions" class="suggestions"></div>
+                </div>
+                <div class="commandbar-field">
+                    <span>Only Resolution(s)</span>
+                    <input type="text" id="opt-fetch-resolution" placeholder="e.g. 4,8 (meters)">
+                </div>
+            </div>
+            <div class="commandbar" id="mosaicbar">
+                <button id="btn-mosaic" class="command-btn" onclick="runMosaic()">Mosaic</button>
+                <label class="switch-label" onclick="document.getElementById('opt-hillshade').classList.toggle('on')">
+                    Hillshade
+                    <span class="switch" id="opt-hillshade"><span class="switch-knob"></span></span>
+                </label>
+                <div class="commandbar-field">
+                    <span>Resolution</span>
+                    <input type="number" id="opt-resolution" min="1" step="any" placeholder="auto" onkeydown="return '0123456789.'.includes(event.key) || ['Backspace','Tab','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Delete'].includes(event.key)">
+                </div>
+                <div class="commandbar-field">
+                    <span>Workers</span>
+                    <input type="number" id="opt-workers" min="1" placeholder="auto" onkeydown="return '0123456789'.includes(event.key) || ['Backspace','Tab','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Delete'].includes(event.key)">
+                </div>
+                <span class="commandbar-disclaimer"><strong>Disclaimer:</strong> Multiple workers increases memory usage.<br>Mosaics require significant disk space.</span>
+            </div>
         </div>
-        <div class="commandbar-field">
-            <span>Only Resolution(s)</span>
-            <input type="text" id="opt-fetch-resolution" placeholder="e.g. 4,8 (meters)">
+        <div class="command-logo">
+            <img src="/static/NOAA-2.png" alt="NOAA">
         </div>
-    </div>
-
-    <div class="commandbar" id="mosaicbar">
-        <button id="btn-mosaic" class="command-btn" onclick="runMosaic()">Mosaic</button>
-        <label class="switch-label" onclick="document.getElementById('opt-hillshade').classList.toggle('on')">
-            <span class="switch" id="opt-hillshade"><span class="switch-knob"></span></span>
-            Hillshade
-        </label>
-        <div class="commandbar-field">
-            <span>Workers</span>
-            <input type="number" id="opt-workers" min="1" placeholder="auto">
-        </div>
-        <div class="commandbar-field">
-            <span>Resolution</span>
-            <input type="text" id="opt-resolution" placeholder="auto">
-        </div>
-        <span class="commandbar-disclaimer"><strong>Disclaimer:</strong> Multiple workers increases memory usage. Mosaics require significant disk space. Consider your system resources.</span>
     </div>
 
     <div id="statusbar">

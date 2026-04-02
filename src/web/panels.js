@@ -282,9 +282,12 @@ function switchView(view) {
 }
 
 function getToastBottom() {
-    var base = 24 + 34 + 34 + 10; // statusbar + fetchbar + mosaicbar + padding
-    var logHeader = document.getElementById("log-header");
-    if (logHeader) base += logHeader.offsetHeight;
+    var base = 10;
+    var els = ["statusbar", "command-area", "log-header"];
+    els.forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) base += el.offsetHeight;
+    });
     if (logOpen) {
         var logPane = document.getElementById("log-pane");
         if (logPane) base += logPane.offsetHeight;
@@ -541,7 +544,12 @@ function browseGeometry() {
     if (!bridge) return;
     bridge.browse_geometry(function (path) {
         if (path) {
-            document.getElementById("opt-geometry").value = path;
+            var input = document.getElementById("opt-geometry");
+            input.value = path;
+            input.blur();
+            // Scroll to show end of path
+            input.setSelectionRange(path.length, path.length);
+            input.scrollLeft = input.scrollWidth;
         }
     });
 }

@@ -72,7 +72,7 @@ with open(runtime_hook_path, "w") as f:
 if is_win and os.path.exists("assets/NOAA.ico"):
     exe_icon = "assets/NOAA.ico"
 elif os.path.exists("assets/NOAA-1.png"):
-    exe_icon = "assets/NOAA-1.png"
+    exe_icon = "assets/NOAA-2.png"
 else:
     exe_icon = None
 

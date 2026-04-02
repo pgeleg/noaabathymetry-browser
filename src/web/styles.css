@@ -5,18 +5,51 @@
 }
 
 :root {
-    --bg: rgb(24, 24, 24);
-    --bg-surface: rgb(30, 30, 35);
-    --fg: rgb(200, 200, 200);
-    --fg-muted: rgb(140, 140, 150);
-    --fg-dim: rgb(100, 100, 110);
-    --border: rgba(255, 255, 255, 0.06);
-    --border-focus: rgb(100, 140, 255);
-    --surface-hover: rgba(255, 255, 255, 0.04);
-    --surface-active: rgba(255, 255, 255, 0.07);
-    --accent: rgb(122, 162, 247);
+    /* ── Navy top bar ─────────────────── */
+    --topbar-bg: #1a365d;
+    --topbar-fg: #e2e8f0;
+    --topbar-fg-muted: #94a3b8;
+    --topbar-border: rgba(255, 255, 255, 0.12);
+    --topbar-input-bg: rgba(255, 255, 255, 0.1);
+    --topbar-input-border: rgba(255, 255, 255, 0.15);
+
+    /* ── Bars (commands, output, status) ── */
+    --bar-bg: #1a365d;
+    --bar-fg: rgb(200, 200, 200);
+    --bar-fg-muted: rgb(140, 140, 150);
+    --bar-fg-dim: rgb(100, 100, 110);
+    --bar-border: rgba(255, 255, 255, 0.06);
+    --bar-surface: rgba(255, 255, 255, 0.04);
+    --bar-input-bg: rgba(255, 255, 255, 0.04);
+    --bar-input-border: rgba(255, 255, 255, 0.06);
+    --bar-hover: rgba(255, 255, 255, 0.07);
+
+    /* ── Output console (Apple-inspired light) ── */
+    --console-bg: #f0f0f0;
+    --console-fg: #262626;
+
+    /* ── Dropdowns / suggestions ────── */
+    --dropdown-bg: rgb(30, 30, 35);
+    --dropdown-fg: rgb(200, 200, 200);
+    --dropdown-fg-muted: rgb(140, 140, 150);
+    --dropdown-border: rgba(255, 255, 255, 0.08);
+    --dropdown-hover: rgba(255, 255, 255, 0.07);
+    --dropdown-active: rgba(255, 255, 255, 0.06);
+
+    /* ── Accent / semantic ────────────── */
+    --accent: #3182ce;
+    --border-focus: #63b3ed;
     --green: rgb(100, 190, 140);
     --red: rgb(210, 100, 100);
+
+    /* ── Map overlays (stay dark) ──── */
+    --map-overlay-bg: rgba(24, 24, 28, 0.85);
+    --map-overlay-bg-solid: rgba(24, 24, 28, 0.95);
+    --map-overlay-fg: rgb(200, 200, 200);
+    --map-overlay-fg-muted: rgb(140, 140, 150);
+    --map-overlay-fg-dim: rgb(100, 100, 110);
+    --map-overlay-border: rgba(255, 255, 255, 0.06);
+
     --font-ui: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     --font-mono: "JetBrains Mono", "Fira Code", "SF Mono", "Menlo", monospace;
 }
@@ -26,8 +59,8 @@ body {
     flex-direction: column;
     height: 100vh;
     font-family: var(--font-ui);
-    background: var(--bg);
-    color: var(--fg);
+    background: var(--bar-bg);
+    color: var(--bar-fg);
 }
 
 /* ── Top bar ─────────────────────────────────────── */
@@ -38,8 +71,8 @@ body {
     gap: 8px;
     height: 42px;
     padding: 0 12px;
-    background: var(--bg);
-    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04);
+    background: var(--topbar-bg);
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.1);
     flex-shrink: 0;
     z-index: 10000;
     position: relative;
@@ -66,7 +99,7 @@ body {
     border: none;
     border-radius: 6px;
     background: transparent;
-    color: var(--fg-dim);
+    color: var(--topbar-fg-muted);
     font-size: 16px;
     cursor: pointer;
     transition: background 0.15s, color 0.15s;
@@ -74,13 +107,13 @@ body {
 }
 
 .icon-btn:hover {
-    background: var(--surface-active);
-    color: var(--fg);
+    background: rgba(255, 255, 255, 0.12);
+    color: var(--topbar-fg);
 }
 
 .icon-btn.active {
-    color: var(--fg);
-    background: rgba(255, 255, 255, 0.08);
+    color: #ffffff;
+    background: rgba(0, 0, 0, 0.15);
 }
 
 /* ── Main layout ─────────────────────────────────── */
@@ -101,15 +134,15 @@ body {
     display: flex;
     align-items: center;
     padding: 5px 12px;
-    background: rgb(16, 16, 18);
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    background: #1a365d;
+    border-top: 1px solid var(--bar-border);
     flex-shrink: 0;
     cursor: pointer;
     user-select: none;
 }
 
 #log-header:hover {
-    background: rgb(20, 20, 22);
+    background: #1e3a63;
 }
 
 #log-header span {
@@ -117,7 +150,7 @@ body {
     font-weight: 500;
     letter-spacing: 0.6px;
     text-transform: uppercase;
-    color: var(--fg-dim);
+    color: rgba(255, 255, 255, 0.7);
     font-family: var(--font-ui);
 }
 
@@ -126,9 +159,9 @@ body {
     width: 20px;
     height: 10px;
     background-image:
-        linear-gradient(var(--fg-dim), var(--fg-dim)),
-        linear-gradient(var(--fg-dim), var(--fg-dim)),
-        linear-gradient(var(--fg-dim), var(--fg-dim));
+        linear-gradient(var(--bar-fg-dim), var(--bar-fg-dim)),
+        linear-gradient(var(--bar-fg-dim), var(--bar-fg-dim)),
+        linear-gradient(var(--bar-fg-dim), var(--bar-fg-dim));
     background-size: 100% 1.5px;
     background-position: center 0, center 50%, center 100%;
     background-repeat: no-repeat;
@@ -139,7 +172,7 @@ body {
     width: 6px;
     height: 6px;
     border-radius: 50%;
-    background: var(--fg-dim);
+    background: rgba(255, 255, 255, 0.3);
     margin-right: 6px;
     flex-shrink: 0;
 }
@@ -169,20 +202,31 @@ body {
     min-height: 200px;
     overflow-y: auto;
     padding: 0;
-    background: rgb(16, 16, 18);
+    background: var(--console-bg);
     flex-shrink: 0;
-    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.3);
+    border-top: 1px solid var(--bar-border);
 }
 
 /* ── Inputs ──────────────────────────────────────── */
 
-input, select {
+#topbar input, #topbar select {
     width: 100%;
     padding: 6px 10px;
-    border: 1px solid var(--border);
+    border: 1px solid var(--topbar-input-border);
     border-radius: 7px;
-    background: var(--surface-hover);
-    color: var(--fg);
+    background: var(--topbar-input-bg);
+    color: var(--topbar-fg);
+    font-size: 12px;
+    font-family: var(--font-mono);
+    transition: border-color 0.15s, background 0.15s;
+}
+
+.commandbar input, .commandbar select {
+    padding: 6px 10px;
+    border: 1px solid var(--bar-input-border);
+    border-radius: 7px;
+    background: var(--bar-input-bg);
+    color: var(--bar-fg);
     font-size: 12px;
     font-family: var(--font-mono);
     transition: border-color 0.15s, background 0.15s;
@@ -194,7 +238,7 @@ select option {
 }
 
 input::placeholder {
-    color: var(--fg-dim);
+    color: rgba(255, 255, 255, 0.4);
 }
 
 input:focus, select:focus {
@@ -215,13 +259,14 @@ input:focus, select:focus {
 
 /* ── Buttons ─────────────────────────────────────── */
 
-button {
-    width: 100%;
+/* Top bar buttons (Open, etc. — not icon buttons) */
+#topbar button:not(.icon-btn) {
+    width: auto;
     padding: 7px 14px;
-    border: 1px solid var(--border);
+    border: 1px solid var(--topbar-input-border);
     border-radius: 7px;
-    background: var(--surface-hover);
-    color: var(--fg-muted);
+    background: var(--topbar-input-bg);
+    color: var(--topbar-fg);
     font-size: 12px;
     font-weight: 500;
     font-family: var(--font-ui);
@@ -229,14 +274,29 @@ button {
     transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
 
-button:hover {
-    background: var(--surface-active);
-    border-color: rgba(255, 255, 255, 0.10);
-    color: var(--fg);
+#topbar button:not(.icon-btn):hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.25);
 }
 
-button:active {
-    background: rgba(255, 255, 255, 0.03);
+/* Command bar buttons */
+.commandbar button {
+    padding: 7px 14px;
+    border: 1px solid var(--topbar-input-border);
+    border-radius: 7px;
+    background: var(--topbar-input-bg);
+    color: var(--topbar-fg);
+    font-size: 12px;
+    font-weight: 500;
+    font-family: var(--font-ui);
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.commandbar button:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.25);
+    color: var(--topbar-fg);
 }
 
 button:disabled {
@@ -255,10 +315,10 @@ button:disabled {
     align-items: center;
     justify-content: space-between;
     padding: 6px 10px;
-    border: 1px solid var(--border);
+    border: 1px solid var(--topbar-input-border);
     border-radius: 7px;
-    background: var(--surface-hover);
-    color: var(--fg);
+    background: var(--topbar-input-bg);
+    color: var(--topbar-fg);
     font-size: 12px;
     font-family: var(--font-ui);
     cursor: pointer;
@@ -267,12 +327,12 @@ button:disabled {
 }
 
 .custom-select:hover {
-    background: var(--surface-active);
-    border-color: rgba(255, 255, 255, 0.10);
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.2);
 }
 
 .select-arrow {
-    color: var(--fg-dim);
+    color: var(--topbar-fg-muted);
     font-size: 10px;
     margin-left: 8px;
 }
@@ -283,8 +343,8 @@ button:disabled {
     top: calc(100% + 4px);
     left: 0;
     right: 0;
-    background: var(--bg-surface);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: var(--dropdown-bg);
+    border: 1px solid var(--dropdown-border);
     border-radius: 8px;
     overflow: hidden;
     z-index: 10000;
@@ -295,7 +355,7 @@ button:disabled {
     padding: 6px 12px;
     font-size: 12px;
     font-family: var(--font-ui);
-    color: var(--fg-muted);
+    color: var(--dropdown-fg);
     cursor: pointer;
     transition: background 0.1s;
     border-radius: 4px;
@@ -303,13 +363,13 @@ button:disabled {
 }
 
 .custom-dropdown .dropdown-item:hover {
-    background: var(--surface-active);
-    color: var(--fg);
+    background: var(--dropdown-hover);
+    color: var(--dropdown-fg);
 }
 
 .custom-dropdown .dropdown-item.selected {
-    color: var(--fg);
-    background: rgba(255, 255, 255, 0.06);
+    color: var(--accent);
+    background: var(--dropdown-active);
 }
 
 /* ── Autocomplete dropdown ───────────────────────── */
@@ -320,8 +380,8 @@ button:disabled {
     top: calc(100% + 4px);
     left: 0;
     right: 0;
-    background: var(--bg-surface);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: var(--dropdown-bg);
+    border: 1px solid var(--dropdown-border);
     border-radius: 8px;
     max-height: 240px;
     overflow-y: auto;
@@ -333,7 +393,7 @@ button:disabled {
     font-size: 9px !important;
     font-weight: 500;
     letter-spacing: 0.5px;
-    color: var(--fg-dim) !important;
+    color: var(--dropdown-fg-muted) !important;
     padding: 6px 10px 2px !important;
     cursor: default !important;
     font-family: var(--font-ui) !important;
@@ -341,14 +401,14 @@ button:disabled {
 
 .suggestions-label:hover {
     background: transparent !important;
-    color: var(--fg-dim) !important;
+    color: var(--dropdown-fg-muted) !important;
 }
 
 .suggestions div {
     padding: 5px 10px;
     font-size: 10px;
     font-family: var(--font-mono);
-    color: var(--fg-muted);
+    color: var(--dropdown-fg);
     cursor: pointer;
     white-space: nowrap;
     overflow: hidden;
@@ -359,13 +419,13 @@ button:disabled {
 }
 
 .suggestions div:hover {
-    background: var(--surface-active);
-    color: var(--fg);
+    background: var(--dropdown-hover);
+    color: var(--dropdown-fg);
 }
 
 .suggestions div.active {
-    background: rgba(100, 140, 255, 0.12);
-    color: var(--fg);
+    background: var(--dropdown-active);
+    color: var(--dropdown-fg);
 }
 
 .recent-item {
@@ -385,7 +445,7 @@ button:disabled {
     min-width: 60px;
     text-align: center;
     font-size: 9px;
-    color: var(--fg-dim);
+    color: var(--dropdown-fg-muted);
     font-family: var(--font-ui);
     padding: 2px 6px;
     background: rgba(255, 255, 255, 0.04);
@@ -395,8 +455,8 @@ button:disabled {
 /* ── Map popups ─────────────────────────────────── */
 
 .dark-popup .maplibregl-popup-content {
-    background: rgba(24, 24, 28, 0.95);
-    color: var(--fg);
+    background: var(--map-overlay-bg-solid);
+    color: var(--map-overlay-fg);
     border-radius: 8px;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.08);
     padding: 0;
@@ -421,7 +481,7 @@ button:disabled {
 }
 
 .dark-popup .maplibregl-popup-tip {
-    border-top-color: rgba(24, 24, 28, 0.95);
+    border-top-color: var(--map-overlay-bg-solid);
 }
 
 
@@ -433,7 +493,7 @@ button:disabled {
 }
 
 .popup-table tr {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    border-bottom: 1px solid var(--map-overlay-border);
 }
 
 .popup-table tr:last-child {
@@ -447,14 +507,14 @@ button:disabled {
 }
 
 .popup-key {
-    color: var(--fg-dim);
+    color: var(--map-overlay-fg-dim);
     font-size: 10px;
     font-weight: 500;
     text-align: left;
 }
 
 .popup-val {
-    color: var(--fg);
+    color: var(--map-overlay-fg);
     font-family: var(--font-mono);
     font-size: 11px;
 }
@@ -465,13 +525,13 @@ button:disabled {
     position: absolute;
     bottom: 30px;
     right: 10px;
-    background: rgba(24, 24, 28, 0.9);
+    background: var(--map-overlay-bg);
     border-radius: 8px;
     padding: 8px 10px;
     font-size: 10px;
     font-family: var(--font-ui);
-    color: var(--fg-muted);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.06);
+    color: var(--map-overlay-fg-muted);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4), 0 0 0 1px var(--map-overlay-border);
     line-height: 1;
     z-index: 1;
 }
@@ -495,13 +555,13 @@ button:disabled {
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    color: var(--fg-dim);
+    color: var(--map-overlay-fg);
     padding: 2px 0 3px;
 }
 
 .legend-divider {
     height: 1px;
-    background: rgba(255, 255, 255, 0.06);
+    background: var(--map-overlay-border);
     margin: 4px 0;
 }
 
@@ -534,7 +594,7 @@ button:disabled {
     font-size: 11px;
     white-space: pre-wrap;
     word-break: break-all;
-    color: rgba(180, 180, 190, 0.8);
+    color: var(--console-fg);
     line-height: 1.6;
     padding: 8px 12px;
 }
@@ -546,17 +606,17 @@ button:disabled {
     bottom: 120px;
     left: 50%;
     transform: translateX(-50%);
-    background: rgba(50, 50, 58, 0.90);
+    background: var(--map-overlay-bg-solid);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    color: var(--fg);
+    color: var(--map-overlay-fg);
     padding: 8px 20px;
     border-radius: 20px;
     font-size: 12px;
     font-family: var(--font-ui);
     white-space: nowrap;
     z-index: 10000;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.12);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5), 0 0 0 1px var(--map-overlay-border);
     border: none;
     animation: toast-in 0.3s ease-out, toast-out 0.4s ease-in 3.6s forwards;
     pointer-events: none;
@@ -720,10 +780,10 @@ button:disabled {
     position: absolute;
     bottom: 4px;
     left: 10px;
-    background: rgba(24, 24, 28, 0.8);
+    background: var(--map-overlay-bg);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
-    color: var(--fg-muted);
+    color: var(--map-overlay-fg-muted);
     padding: 3px 8px;
     border-radius: 4px;
     font-size: 10px;
@@ -752,22 +812,22 @@ button:disabled {
     padding: 4px 10px;
     font-size: 11px;
     font-weight: 500;
-    color: var(--fg-dim);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    background: rgba(24, 24, 28, 0.85);
+    color: var(--map-overlay-fg-dim);
+    border: 1px solid var(--map-overlay-border);
+    background: var(--map-overlay-bg);
     border-radius: 14px;
     transition: all 0.2s;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
 }
 
 .layer-toggle:hover {
-    color: var(--fg-muted);
+    color: var(--map-overlay-fg-muted);
     border-color: rgba(255, 255, 255, 0.12);
     background: rgba(30, 30, 35, 0.9);
 }
 
 .layer-toggle.layer-on {
-    color: var(--fg);
+    color: var(--map-overlay-fg);
     border-color: rgba(255, 255, 255, 0.15);
     background: rgba(30, 30, 35, 0.95);
 }
@@ -808,42 +868,72 @@ button:disabled {
 .fill-icon {
     width: 8px;
     height: 8px;
-    border: 1.5px solid var(--fg-dim);
+    border: 1.5px solid var(--map-overlay-fg-dim);
     border-radius: 2px;
     flex-shrink: 0;
     transition: background 0.2s;
 }
 
 .layer-on .fill-icon {
-    background: var(--fg-dim);
+    background: var(--map-overlay-fg-dim);
+}
+
+/* ── Command area ────────────────────────────────── */
+
+#command-area {
+    display: flex;
+    flex-shrink: 0;
+    background: var(--bar-bg);
+    border-top: 1px solid var(--bar-border);
+}
+
+.command-bars {
+    flex: 1;
+}
+
+.command-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 16px;
+    border-left: 1px solid var(--bar-border);
+    align-self: center;
+}
+
+.command-logo img {
+    height: 95px;
+    width: auto;
 }
 
 /* ── Command bar ─────────────────────────────────── */
+
+.commandbar + .commandbar {
+    border-top: 1px solid var(--bar-border);
+}
 
 .commandbar {
     display: flex;
     align-items: center;
     padding: 0 12px;
-    background: var(--bg);
-    border-top: 1px solid var(--border);
+    background: var(--bar-bg);
     flex-shrink: 0;
     font-size: 11px;
     font-family: var(--font-ui);
-    color: var(--fg-muted);
-    height: 34px;
+    color: var(--bar-fg-muted);
+    height: 50px;
     gap: 10px;
     overflow: visible;
     position: relative;
 }
 
 .command-btn {
-    width: 70px;
-    padding: 4px 0;
-    font-size: 11px;
+    width: 90px;
+    padding: 10px 0;
+    font-size: 15px;
     font-weight: 600;
-    color: var(--fg);
-    border: 1px solid rgba(255, 255, 255, 0.10);
-    background: rgba(255, 255, 255, 0.06);
+    color: var(--topbar-fg);
+    border: 1px solid var(--topbar-input-border);
+    background: var(--topbar-input-bg);
     flex-shrink: 0;
     text-align: center;
 }
@@ -875,15 +965,16 @@ button:disabled {
 }
 
 .commandbar-field span {
-    color: var(--fg-dim);
-    font-size: 11px;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 12px;
 }
 
 .commandbar-field input[type="number"] {
-    width: 72px;
-    padding: 2px 6px;
-    font-size: 11px;
+    width: 80px;
+    padding: 5px 8px;
+    font-size: 12px;
     text-align: center;
+    color-scheme: dark;
 }
 
 .switch-label {
@@ -892,14 +983,15 @@ button:disabled {
     gap: 6px;
     cursor: pointer;
     white-space: nowrap;
-    font-size: 11px;
-    color: var(--fg-muted);
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.7);
     user-select: none;
 }
 
 .switch-label:hover {
-    color: var(--fg);
+    color: var(--bar-fg);
 }
+
 
 .switch {
     width: 28px;
@@ -917,7 +1009,7 @@ button:disabled {
     left: 2px;
     width: 10px;
     height: 10px;
-    background: var(--fg-dim);
+    background: var(--bar-fg-dim);
     border-radius: 50%;
     transition: left 0.2s, background 0.2s;
 }
@@ -928,44 +1020,38 @@ button:disabled {
 
 .switch.on .switch-knob {
     left: 16px;
-    background: var(--fg);
+    background: var(--bar-fg);
 }
 
 .commandbar-disclaimer {
-    font-size: 9px;
-    color: var(--fg-dim);
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.4);
     font-style: italic;
-    margin-left: auto;
-    white-space: nowrap;
+    margin-left: 10px;
+    white-space: normal;
+    line-height: 1.4;
 }
+
 
 .commandbar-field input[type="text"] {
-    padding: 2px 6px;
-    font-size: 10px;
+    padding: 5px 8px;
+    font-size: 12px;
 }
 
-.browse-btn {
+.commandbar .browse-btn {
     width: auto;
     min-width: auto;
-    padding: 1px 6px;
-    font-size: 12px;
-    border-radius: 4px;
+    padding: 4px 10px !important;
+    font-size: 12px !important;
+    border-radius: 5px;
     flex-shrink: 0;
+    color: var(--topbar-fg);
+    border: 1px solid var(--topbar-input-border);
+    background: var(--topbar-input-bg);
 }
 
 #opt-geometry {
     width: 300px;
-    direction: rtl;
-    text-overflow: ellipsis;
-}
-
-#opt-geometry:focus {
-    direction: ltr;
-}
-
-#opt-geometry::placeholder {
-    direction: ltr;
-    unicode-bidi: plaintext;
 }
 
 #geom-suggestions {
@@ -981,9 +1067,9 @@ button:disabled {
     height: 24px;
     padding: 0 12px;
     font-size: 11px;
-    background: var(--bg);
-    border-top: 1px solid var(--border);
-    color: var(--fg-dim);
+    background: var(--bar-bg);
+    border-top: 1px solid var(--bar-border);
+    color: rgba(255, 255, 255, 0.4);
     flex-shrink: 0;
 }
 
@@ -996,5 +1082,5 @@ button:disabled {
 
 #statusbar .right {
     flex: 0 0 auto;
-    color: var(--fg-dim);
+    color: var(--bar-fg-dim);
 }
