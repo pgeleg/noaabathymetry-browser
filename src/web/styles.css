@@ -1061,6 +1061,16 @@ button:disabled {
     width: 300px;
 }
 
+#opt-resolution {
+    width: 110px;
+    text-align: center;
+}
+
+#opt-workers {
+    width: 55px;
+    text-align: center;
+}
+
 #geom-suggestions {
     bottom: calc(100% + 4px);
     top: auto;

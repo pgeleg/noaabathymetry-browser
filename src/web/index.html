@@ -80,11 +80,11 @@
                 </label>
                 <div class="commandbar-field">
                     <span>Resolution</span>
-                    <input type="number" id="opt-resolution" min="1" step="any" placeholder="auto" onkeydown="return '0123456789.'.includes(event.key) || ['Backspace','Tab','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Delete'].includes(event.key)">
+                    <input type="text" id="opt-resolution" placeholder="auto" inputmode="numeric">
                 </div>
                 <div class="commandbar-field">
                     <span>Workers</span>
-                    <input type="number" id="opt-workers" min="1" placeholder="auto" onkeydown="return '0123456789'.includes(event.key) || ['Backspace','Tab','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Delete'].includes(event.key)">
+                    <input type="text" id="opt-workers" placeholder="auto" inputmode="numeric" maxlength="2">
                 </div>
                 <span class="commandbar-disclaimer"><strong>Disclaimer:</strong> Multiple workers increases memory usage.<br>Mosaics require significant disk space. Consider your system resources.</span>
             </div>

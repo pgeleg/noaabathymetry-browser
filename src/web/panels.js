@@ -554,6 +554,25 @@ function browseGeometry() {
     });
 }
 
+// Numeric-only inputs — strip non-numeric on input, clamp on blur
+document.getElementById("opt-resolution").addEventListener("input", function () {
+    this.value = this.value.replace(/[^0-9.]/g, "");
+});
+document.getElementById("opt-resolution").addEventListener("blur", function () {
+    if (this.value !== "" && (parseFloat(this.value) < 1 || isNaN(parseFloat(this.value)))) {
+        this.value = "";
+    }
+});
+
+document.getElementById("opt-workers").addEventListener("input", function () {
+    this.value = this.value.replace(/[^0-9]/g, "");
+});
+document.getElementById("opt-workers").addEventListener("blur", function () {
+    if (this.value !== "" && (parseInt(this.value) < 1 || isNaN(parseInt(this.value)))) {
+        this.value = "";
+    }
+});
+
 function getMosaicOptions() {
     var opts = {
         hillshade: document.getElementById("opt-hillshade").classList.contains("on"),
