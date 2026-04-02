@@ -29,7 +29,7 @@ jobs:
         shell: bash -l {0}
 
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - uses: conda-incubator/setup-miniconda@fc2d68f6413eb2d87b895e92f8584b5b94a10167 # v3
         with:
@@ -37,6 +37,7 @@ jobs:
           channels: conda-forge
           activate-environment: build
           miniforge-version: latest
+          conda-remove-defaults: true
 
       - name: Install dependencies
         # TODO: Pin BlueTopo to release tag when dev features are released
@@ -81,7 +82,7 @@ jobs:
 
       - name: Upload macOS
         if: runner.os == 'macOS'
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7
         with:
           name: noaabathymetry-${{ matrix.name }}
           path: |
@@ -90,7 +91,7 @@ jobs:
 
       - name: Upload Windows
         if: runner.os == 'Windows'
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7
         with:
           name: noaabathymetry-Windows
           path: |
@@ -104,7 +105,7 @@ jobs:
     # TODO: Sign releases with GPG or GitHub attestation
 
     steps:
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           path: artifacts
 
