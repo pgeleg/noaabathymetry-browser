@@ -9,7 +9,8 @@ requires-python = ">=3.10"
 description = "Browser-based GUI for noaabathymetry"
 dependencies = [
     "noaabathymetry",
-    "aiohttp>=3.9",
+    "aiohttp==3.13.5",
+    "certifi==2026.2.25",
 ]
 
 [project.scripts]
