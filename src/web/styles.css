@@ -83,6 +83,13 @@ body {
     position: relative;
 }
 
+.topbar-label {
+    font-size: 12px;
+    color: var(--topbar-fg-muted);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
 .topbar-divider {
     width: 1px;
     height: 18px;

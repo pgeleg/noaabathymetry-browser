@@ -12,7 +12,8 @@
         <button class="icon-btn" id="btn-view-docs" onclick="switchView('docs')" title="Docs">?</button>
         <div class="topbar-divider"></div>
         <div class="topbar-item">
-            <div style="display:flex;gap:4px;">
+            <div style="display:flex;gap:4px;align-items:center;">
+                <span class="topbar-label">Your Project:</span>
                 <div style="flex:1;position:relative;">
                     <input type="text" id="project-dir" placeholder="/path/to/project"
                            oninput="onDirInput()" onfocus="onDirFocus()" onclick="onDirClick()" autocomplete="off" />
