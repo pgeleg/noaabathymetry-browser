@@ -77,7 +77,8 @@ jobs:
             cd dist && zip -r -y -q "../noaabathymetry-${{ matrix.name }}.zip" "noaabathymetry.app"
             cd .. && shasum -a 256 "noaabathymetry-${{ matrix.name }}.zip" > "noaabathymetry-${{ matrix.name }}.zip.sha256"
           else
-            shasum -a 256 "dist/noaabathymetry.exe" > "noaabathymetry.exe.sha256"
+            cp "dist/noaabathymetry.exe" "noaabathymetry.exe"
+            shasum -a 256 "noaabathymetry.exe" > "noaabathymetry.exe.sha256"
           fi
 
       - name: Upload macOS
@@ -95,7 +96,7 @@ jobs:
         with:
           name: noaabathymetry-Windows
           path: |
-            dist/noaabathymetry.exe
+            noaabathymetry.exe
             noaabathymetry.exe.sha256
 
   release:
