@@ -6,6 +6,7 @@ var _callId = 0;
 var _pending = {};
 var _queued = [];
 var _connected = false;
+var _reconnectAttempts = 0;
 var _token = new URLSearchParams(window.location.search).get("token");
 
 function _connect() {
@@ -13,6 +14,7 @@ function _connect() {
 
     _ws.onopen = function () {
         _connected = true;
+        _reconnectAttempts = 0;
         // Flush any calls that were made before connection
         _queued.forEach(function (msg) { _ws.send(msg); });
         _queued = [];
@@ -41,7 +43,10 @@ function _connect() {
 
     _ws.onclose = function () {
         _connected = false;
-        setTimeout(_connect, 1000);
+        _reconnectAttempts++;
+        if (_reconnectAttempts <= 10) {
+            setTimeout(_connect, Math.min(1000 * _reconnectAttempts, 5000));
+        }
     };
 }
 

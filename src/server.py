@@ -109,17 +109,29 @@ def _shutdown():
     os._exit(0)
 
 
-# Methods that return a value synchronously
+# Allowed methods and their expected argument names
 _SYNC_METHODS = {
-    "get_recents", "get_cpu_count", "browse_directory",
-    "browse_geometry", "complete_path", "save_basemap",
-    "remove_recent",
+    "get_recents": set(),
+    "get_cpu_count": set(),
+    "browse_directory": set(),
+    "browse_geometry": set(),
+    "complete_path": {"partial"},
+    "save_basemap": {"basemap_name"},
+    "remove_recent": {"path"},
 }
 
-# Methods that run async (thread-based, push results via signals)
 _ASYNC_METHODS = {
-    "fetch", "mosaic", "load_remote_layer", "load_tracked_layer",
+    "fetch": {"project_dir", "geometry", "data_source", "resolution_filter"},
+    "mosaic": {"project_dir", "data_source", "options_json"},
+    "load_remote_layer": {"data_source"},
+    "load_tracked_layer": {"project_dir", "data_source"},
 }
+
+def _sanitize_args(args, allowed_keys):
+    """Only pass through expected argument names."""
+    if not isinstance(args, dict):
+        return {}
+    return {k: v for k, v in args.items() if k in allowed_keys}
 
 
 async def _dispatch(bridge, ws, call_id, method, args, loop):
@@ -127,9 +139,8 @@ async def _dispatch(bridge, ws, call_id, method, args, loop):
         fn = getattr(bridge, method, None)
         if fn is None:
             return
-        # Run sync methods in thread to avoid blocking event loop
-        # (browse_directory/browse_geometry spawn subprocesses)
-        result = await loop.run_in_executor(None, lambda: fn(**args))
+        safe_args = _sanitize_args(args, _SYNC_METHODS[method])
+        result = await loop.run_in_executor(None, lambda: fn(**safe_args))
         if call_id is not None and not ws.closed:
             await ws.send_json({"type": "result", "id": call_id, "data": result})
 
@@ -137,5 +148,5 @@ async def _dispatch(bridge, ws, call_id, method, args, loop):
         fn = getattr(bridge, method, None)
         if fn is None:
             return
-        # These methods start their own threads and push via send_msg
-        fn(**args)
+        safe_args = _sanitize_args(args, _ASYNC_METHODS[method])
+        fn(**safe_args)
