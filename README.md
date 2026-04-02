@@ -1,6 +1,6 @@
 # National Bathymetric Source — Browser GUI
 
-Browser-based GUI wrapper for the [noaabathymetry](https://github.com/noaa-ocs-hydrography/BlueTopo) Python package. Opens in your system browser — no Qt or Electron dependency.
+Desktop GUI wrapper for the [noaabathymetry](https://github.com/noaa-ocs-hydrography/BlueTopo) Python package.
 
 ## Getting Started
 
