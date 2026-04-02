@@ -60,15 +60,25 @@ def _win_startupinfo():
 
 
 _WIN_OWNER_FORM = (
-    '$f = New-Object System.Windows.Forms.Form;'
-    '$f.TopMost = $true;'
-    '$f.ShowInTaskbar = $false;'
+    "Add-Type -TypeDefinition '"
+    "using System; using System.Runtime.InteropServices; "
+    "public class FG { "
+    '[DllImport("user32.dll")] '
+    "public static extern void keybd_event(byte k, byte s, uint f, UIntPtr e); "
+    '[DllImport("user32.dll")] '
+    "public static extern bool SetForegroundWindow(IntPtr h); "
+    "}';"
+    "[FG]::keybd_event(0x12, 0, 0, [UIntPtr]::Zero);"
+    "[FG]::keybd_event(0x12, 0, 2, [UIntPtr]::Zero);"
+    "$f = New-Object System.Windows.Forms.Form;"
+    "$f.TopMost = $true;"
+    "$f.ShowInTaskbar = $false;"
     '$f.FormBorderStyle = "None";'
     '$f.StartPosition = "Manual";'
-    '$f.Location = New-Object System.Drawing.Point(-32000, -32000);'
-    '$f.Size = New-Object System.Drawing.Size(1, 1);'
-    '$f.Show();'
-    '$f.Activate();'
+    "$f.Location = New-Object System.Drawing.Point(-32000, -32000);"
+    "$f.Size = New-Object System.Drawing.Size(1, 1);"
+    "$f.Show();"
+    "[FG]::SetForegroundWindow($f.Handle);"
 )
 
 

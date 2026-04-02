@@ -21,9 +21,11 @@ web_dir = src_dir / "web"
 if is_win:
     gdal_data = env / "Library" / "share" / "gdal"
     proj_data = env / "Library" / "share" / "proj"
+    gdal_plugins = env / "Library" / "lib" / "gdalplugins"
 else:
     gdal_data = env / "share" / "gdal"
     proj_data = env / "share" / "proj"
+    gdal_plugins = env / "lib" / "gdalplugins"
 
 datas = [
     (str(web_dir / "index.html"), "src/web"),
@@ -37,6 +39,9 @@ datas = [
     (str(proj_data), "share/proj"),
 ]
 
+if gdal_plugins.is_dir():
+    datas.append((str(gdal_plugins), "lib/gdalplugins"))
+
 datas += collect_data_files("botocore")
 datas += collect_data_files("certifi")
 
@@ -49,10 +54,10 @@ else:
 
 extra_bins = []
 if is_win:
-    for pattern in ["libssl*.dll", "libcrypto*.dll"]:
+    for pattern in ["libssl*.dll", "libcrypto*.dll", "hdf5*.dll", "libhdf5*.dll"]:
         extra_bins += [(f, ".") for f in glob.glob(os.path.join(lib_dir, pattern))]
 else:
-    for pattern in ["libssl*", "libcrypto*"]:
+    for pattern in ["libssl*", "libcrypto*", "libhdf5*"]:
         extra_bins += [(f, ".") for f in glob.glob(os.path.join(lib_dir, pattern)) if not os.path.islink(f)]
 
 hiddenimports = [
@@ -72,6 +77,9 @@ if getattr(sys, '_MEIPASS', None):
     base = sys._MEIPASS
     os.environ.setdefault("GDAL_DATA", os.path.join(base, "share", "gdal"))
     os.environ.setdefault("PROJ_LIB", os.path.join(base, "share", "proj"))
+    plugins = os.path.join(base, "lib", "gdalplugins")
+    if os.path.isdir(plugins):
+        os.environ.setdefault("GDAL_DRIVER_PATH", plugins)
 '''
 
 runtime_hook_path = os.path.join("build", "_rthook_gdal.py")
