@@ -1,5 +1,6 @@
 """Entry point — starts localhost server and opens the system browser."""
 
+import multiprocessing
 import os
 import secrets
 import socket
@@ -81,11 +82,13 @@ def _setup_ssl():
 
 
 def main():
+    multiprocessing.freeze_support()
+
     try:
         if not _acquire_lock():
             sys.exit(0)
     except Exception:
-        pass  # Lock failed — proceed anyway rather than block launch
+        sys.exit(0)  # Lock failed — don't risk a duplicate instance
 
     _setup_ssl()
     sock = _bind_socket()
