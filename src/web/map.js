@@ -657,16 +657,18 @@ function raiseTrackedLayers() {
 }
 
 function addTrackedToMap(data) {
+    var empty = { type: "FeatureCollection", features: [] };
     // Add all fills first
     trackedCategories.forEach(function (cat) {
         var geojson = data[cat];
-        if (!geojson || geojson.features.length === 0) return;
+        var hasFeatures = geojson && geojson.features.length > 0;
         var srcId = "tracked-" + cat;
         if (!map.getSource(srcId)) {
+            if (!hasFeatures) return;
             map.addSource(srcId, { type: "geojson", data: geojson });
             map.addLayer({ id: srcId + "-fill", type: "fill", source: srcId, paint: { "fill-color": TRACKED_COLORS[cat], "fill-opacity": layerFilled ? 1 : 0 } });
         } else {
-            map.getSource(srcId).setData(geojson);
+            map.getSource(srcId).setData(hasFeatures ? geojson : empty);
         }
     });
     // Then all outlines on top so they're visible above fills
