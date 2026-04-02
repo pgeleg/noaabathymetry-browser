@@ -129,5 +129,5 @@ else:
         coll,
         name="noaabathymetry.app",
         icon="assets/NOAA.icns" if os.path.exists("assets/NOAA.icns") else None,
-        bundle_identifier="gov.noaa.nbs.bathymetry",
+        bundle_identifier="com.noaabathymetry.browser",
     )
