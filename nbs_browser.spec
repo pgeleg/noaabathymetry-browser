@@ -49,10 +49,10 @@ else:
 
 extra_bins = []
 if is_win:
-    for pattern in ["hdf5.dll", "hdf5_hl.dll", "libssl*.dll", "libcrypto*.dll"]:
+    for pattern in ["libssl*.dll", "libcrypto*.dll"]:
         extra_bins += [(f, ".") for f in glob.glob(os.path.join(lib_dir, pattern))]
 else:
-    for pattern in ["libssl*", "libcrypto*", "libhdf5*"]:
+    for pattern in ["libssl*", "libcrypto*"]:
         extra_bins += [(f, ".") for f in glob.glob(os.path.join(lib_dir, pattern)) if not os.path.islink(f)]
 
 hiddenimports = [

@@ -81,8 +81,11 @@ def _setup_ssl():
 
 
 def main():
-    if not _acquire_lock():
-        sys.exit(0)
+    try:
+        if not _acquire_lock():
+            sys.exit(0)
+    except Exception:
+        pass  # Lock failed — proceed anyway rather than block launch
 
     _setup_ssl()
     sock = _bind_socket()
