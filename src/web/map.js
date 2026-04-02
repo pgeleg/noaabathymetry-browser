@@ -803,6 +803,7 @@ function updateLegend() {
 var remoteActive = false;
 var remoteRequestedSource = null;
 var trackedActive = false;
+var trackedRequestedDir = null;
 var remoteLoading = false;
 var trackedLoading = false;
 
@@ -896,6 +897,7 @@ function toggleTrackedLayer() {
         trackedSkipCache = false;
         trackedActive = true;
         trackedLoading = true;
+        trackedRequestedDir = dir;
         trackedDirName = getDirName(dir);
         btn.classList.add("layer-on");
         btn.classList.add("layer-loading");
@@ -910,6 +912,7 @@ function reloadTrackedLayer() {
     var btn = document.getElementById("btn-layer-tracked");
     btn.classList.add("layer-loading");
     var dir = document.getElementById("project-dir").value;
+    trackedRequestedDir = dir;
     var source = document.getElementById("data-source").value;
     bridge.load_tracked_layer(dir, source);
 }
@@ -961,6 +964,9 @@ function onLayersReady(data) {
         trackedLoading = false;
         var btn = document.getElementById("btn-layer-tracked");
         btn.classList.remove("layer-loading");
+        // Discard if tracked was turned off or this response is for a different directory
+        if (!trackedActive) return;
+        if (data.dir && trackedRequestedDir && data.dir !== trackedRequestedDir) return;
         if (data.error) {
             trackedActive = false;
             trackedIsReload = false;

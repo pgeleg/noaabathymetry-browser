@@ -59,12 +59,24 @@ def _win_startupinfo():
     return si
 
 
+_WIN_OWNER_FORM = (
+    '$f = New-Object System.Windows.Forms.Form;'
+    '$f.TopMost = $true;'
+    '$f.ShowInTaskbar = $false;'
+    '$f.FormBorderStyle = "None";'
+    '$f.StartPosition = "Manual";'
+    '$f.Location = New-Object System.Drawing.Point(-32000, -32000);'
+    '$f.Size = New-Object System.Drawing.Size(1, 1);'
+    '$f.Show();'
+    '$f.Activate();'
+)
+
+
 def _win_choose_folder():
     try:
         ps = (
             'Add-Type -AssemblyName System.Windows.Forms;'
-            '$f = New-Object System.Windows.Forms.Form;'
-            '$f.TopMost = $true;'
+            + _WIN_OWNER_FORM +
             '$d = New-Object System.Windows.Forms.OpenFileDialog;'
             '$d.ValidateNames = $false;'
             '$d.CheckFileExists = $false;'
@@ -72,7 +84,8 @@ def _win_choose_folder():
             '$d.FileName = "Select Folder";'
             '$d.Title = "Select Project Directory";'
             '$d.Filter = "Folders|no_file";'
-            'if ($d.ShowDialog($f) -eq "OK") { [System.IO.Path]::GetDirectoryName($d.FileName) } else { "" }'
+            'if ($d.ShowDialog($f) -eq "OK") { [System.IO.Path]::GetDirectoryName($d.FileName) } else { "" };'
+            '$f.Close()'
         )
         result = subprocess.run(
             ["powershell", "-NoProfile", "-WindowStyle", "Hidden", "-Command", ps],
@@ -88,13 +101,13 @@ def _win_choose_file():
     try:
         ps = (
             'Add-Type -AssemblyName System.Windows.Forms;'
-            '$f = New-Object System.Windows.Forms.Form;'
-            '$f.TopMost = $true;'
+            + _WIN_OWNER_FORM +
             '$d = New-Object System.Windows.Forms.OpenFileDialog;'
             '$d.Title = "Select Geometry File";'
             '$d.Filter = "All Supported|*.gpkg;*.shp;*.geojson;*.json;*.kml|'
             'GeoPackage|*.gpkg|Shapefile|*.shp|GeoJSON|*.geojson;*.json|KML|*.kml|All Files|*.*";'
-            'if ($d.ShowDialog($f) -eq "OK") { $d.FileName } else { "" }'
+            'if ($d.ShowDialog($f) -eq "OK") { $d.FileName } else { "" };'
+            '$f.Close()'
         )
         result = subprocess.run(
             ["powershell", "-NoProfile", "-WindowStyle", "Hidden", "-Command", ps],

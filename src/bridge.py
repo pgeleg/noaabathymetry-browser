@@ -354,6 +354,7 @@ class Bridge:
 
     def load_tracked_layer(self, project_dir, data_source):
         data_source = data_source if data_source else None
+        dir_key = project_dir  # Track which directory this request is for
 
         def worker():
             try:
@@ -391,10 +392,10 @@ class Bridge:
                     }
 
                 self._send({"type": "layers_ready",
-                            "data": {"layer": "tracked", "data": layers, "total": result.total_tracked}})
+                            "data": {"layer": "tracked", "dir": dir_key, "data": layers, "total": result.total_tracked}})
             except Exception as e:
                 self._send({"type": "layers_ready",
-                            "data": {"layer": "tracked", "error": str(e)}})
+                            "data": {"layer": "tracked", "dir": dir_key, "error": str(e)}})
 
         t = threading.Thread(target=worker, daemon=True)
         t.start()
