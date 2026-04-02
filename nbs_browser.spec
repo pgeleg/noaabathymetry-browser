@@ -31,6 +31,8 @@ datas = [
     (str(web_dir / "map.js"), "src/web"),
     (str(web_dir / "panels.js"), "src/web"),
     (str(web_dir / "bridge-ws.js"), "src/web"),
+    (str(web_dir / "NOAA-1.png"), "src/web"),
+    (str(web_dir / "NOAA-2.png"), "src/web"),
     (str(gdal_data), "share/gdal"),
     (str(proj_data), "share/proj"),
 ]
