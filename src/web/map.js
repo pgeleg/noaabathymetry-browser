@@ -440,9 +440,11 @@ var ToolbarControl = {
             '<a class="toolbar-btn" id="toolbar-basemap" href="#" onclick="event.preventDefault();toggleBasemapMenu()" title="Basemap">◫</a>' +
             '<a class="toolbar-btn" id="toolbar-grid" href="#" onclick="event.preventDefault();toggleGridMenu()" title="Lat/long grid">#</a>' +
             '<a class="toolbar-btn" id="toolbar-utm" href="#" onclick="event.preventDefault();toggleUtmMenu()" title="UTM zones">▮</a>' +
+            '<a class="toolbar-btn" id="toolbar-wmts" href="#" onclick="event.preventDefault();toggleWmtsMenu()" title="NOAA Overlays">⊞</a>' +
             '<div class="toolbar-menu" id="basemap-menu"></div>' +
             '<div class="toolbar-menu" id="grid-menu"></div>' +
-            '<div class="toolbar-menu" id="utm-menu"></div>';
+            '<div class="toolbar-menu" id="utm-menu"></div>' +
+            '<div class="toolbar-menu" id="wmts-menu"></div>';
         return div;
     },
     onRemove: function () {}
@@ -450,7 +452,7 @@ var ToolbarControl = {
 map.addControl(ToolbarControl, "top-left");
 
 function closeAllMenus() {
-    ["basemap-menu", "grid-menu", "utm-menu"].forEach(function (id) {
+    ["basemap-menu", "grid-menu", "utm-menu", "wmts-menu"].forEach(function (id) {
         var m = document.getElementById(id);
         if (m) m.style.display = "none";
     });
@@ -528,6 +530,80 @@ function toggleUtmMenu() {
     off.textContent = "Off";
     off.onclick = function (e) { e.stopPropagation(); utmOff(); menu.style.display = "none"; };
     menu.appendChild(off);
+    menu.style.display = "block";
+}
+
+// ── WMTS overlays (nowCOAST) ─────────────────────────
+
+var wmtsLayers = [
+    { id: "wmts-bathymetry", label: "Bathymetry", layer: "bluetopo:bathymetry" },
+    { id: "wmts-hillshade", label: "Hillshade", layer: "bluetopo:hillshade" },
+];
+var wmtsActive = {};
+
+function wmtsUrl(layer) {
+    return "https://nowcoast.noaa.gov/geoserver/gwc/service/wmts" +
+        "?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0" +
+        "&LAYER=" + encodeURIComponent(layer) +
+        "&STYLE=&FORMAT=image/png8" +
+        "&TILEMATRIXSET=EPSG:3857&TILEMATRIX=EPSG:3857:{z}&TILEROW={y}&TILECOL={x}";
+}
+
+function reorderWmtsLayers() {
+    // Ensure hillshade is always below bathymetry, both below vector overlays
+    var firstVector = null;
+    var layers = map.getStyle().layers;
+    for (var i = 0; i < layers.length; i++) {
+        if (layers[i].id.indexOf("remote") === 0 || layers[i].id.indexOf("tracked") === 0 || layers[i].id.indexOf("draw") === 0) {
+            firstVector = layers[i].id;
+            break;
+        }
+    }
+    // Order: hillshade (bottom) → bathymetry → vector overlays
+    if (map.getLayer("wmts-hillshade")) map.moveLayer("wmts-hillshade", firstVector);
+    if (map.getLayer("wmts-bathymetry")) map.moveLayer("wmts-bathymetry", firstVector);
+}
+
+function toggleWmtsLayer(cfg) {
+    if (wmtsActive[cfg.id]) {
+        if (map.getLayer(cfg.id)) map.removeLayer(cfg.id);
+        if (map.getSource(cfg.id)) map.removeSource(cfg.id);
+        delete wmtsActive[cfg.id];
+    } else {
+        map.addSource(cfg.id, {
+            type: "raster",
+            tiles: [wmtsUrl(cfg.layer)],
+            tileSize: 256,
+            attribution: "NOAA nowCOAST",
+        });
+        map.addLayer({ id: cfg.id, type: "raster", source: cfg.id, paint: { "raster-opacity": 0.7 } });
+        wmtsActive[cfg.id] = true;
+        reorderWmtsLayers();
+    }
+}
+
+function toggleWmtsMenu() {
+    var menu = document.getElementById("wmts-menu");
+    var wasOpen = menu.style.display === "block";
+    closeAllMenus();
+    if (wasOpen) return;
+    menu.innerHTML = "";
+    var header = document.createElement("div");
+    header.className = "toolbar-menu-header";
+    header.textContent = "BLUETOPO";
+    menu.appendChild(header);
+    var sep = document.createElement("div"); sep.className = "toolbar-menu-sep"; menu.appendChild(sep);
+    wmtsLayers.forEach(function (cfg) {
+        var item = document.createElement("div");
+        item.className = "toolbar-menu-item" + (wmtsActive[cfg.id] ? " active" : "");
+        item.textContent = cfg.label;
+        item.onclick = function (e) {
+            e.stopPropagation();
+            toggleWmtsLayer(cfg);
+            item.classList.toggle("active", !!wmtsActive[cfg.id]);
+        };
+        menu.appendChild(item);
+    });
     menu.style.display = "block";
 }
 
