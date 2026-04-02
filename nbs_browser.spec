@@ -40,12 +40,20 @@ datas = [
 datas += collect_data_files("botocore")
 datas += collect_data_files("certifi")
 
-# SSL libraries needed by GDAL's libcurl for HTTPS
+# Additional libraries needed by GDAL (SSL for HTTPS, HDF5 for S102)
 import glob
-lib_dir = str(env / "lib")
-ssl_bins = []
-for pattern in ["libssl*", "libcrypto*"]:
-    ssl_bins += [(f, ".") for f in glob.glob(os.path.join(lib_dir, pattern)) if not os.path.islink(f)]
+if is_win:
+    lib_dir = str(env / "Library" / "bin")
+else:
+    lib_dir = str(env / "lib")
+
+extra_bins = []
+if is_win:
+    for pattern in ["hdf5.dll", "hdf5_hl.dll", "libssl*.dll", "libcrypto*.dll"]:
+        extra_bins += [(f, ".") for f in glob.glob(os.path.join(lib_dir, pattern))]
+else:
+    for pattern in ["libssl*", "libcrypto*", "libhdf5*"]:
+        extra_bins += [(f, ".") for f in glob.glob(os.path.join(lib_dir, pattern)) if not os.path.islink(f)]
 
 hiddenimports = [
     *collect_submodules("nbs.noaabathymetry"),
@@ -81,7 +89,7 @@ else:
 a = Analysis(
     ["src/main.py"],
     pathex=[],
-    binaries=ssl_bins,
+    binaries=extra_bins,
     datas=datas,
     hiddenimports=hiddenimports,
     hookspath=[],

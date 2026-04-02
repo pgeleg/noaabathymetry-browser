@@ -307,6 +307,7 @@ map.on("mousemove", function (e) {
 // ── Lat/long gridlines ───────────────────────────────
 
 var gridColorIndex = 0;
+var gridWeight = 0.5;
 var gridColor = "rgba(255,255,255,0.25)";
 var gridLabelColor = "rgba(255,255,255,0.4)";
 var gridVisible = false;
@@ -332,12 +333,17 @@ function buildGridGeoJSON() {
 function addGridToMap() {
     if (map.getSource("grid")) return;
     map.addSource("grid", { type: "geojson", data: buildGridGeoJSON() });
-    map.addLayer({ id: "grid-lines", type: "line", source: "grid", paint: { "line-color": gridColor, "line-width": 0.5 } });
+    map.addLayer({ id: "grid-lines", type: "line", source: "grid", paint: { "line-color": gridColor, "line-width": gridWeight } });
 }
 
 function removeGridFromMap() {
     if (map.getLayer("grid-lines")) map.removeLayer("grid-lines");
     if (map.getSource("grid")) map.removeSource("grid");
+}
+
+function setGridWeight(val) {
+    gridWeight = val;
+    if (map.getLayer("grid-lines")) map.setPaintProperty("grid-lines", "line-width", gridWeight);
 }
 
 function setGridColor(idx) {
@@ -365,6 +371,7 @@ function gridOff() {
 // ── UTM zone dividers ────────────────────────────────
 
 var utmColorIndex = 0;
+var utmWeight = 1;
 var utmColor = "rgba(255,180,50,0.3)";
 var utmLabelColor = "rgba(255,180,50,0.5)";
 var utmVisible = false;
@@ -388,12 +395,17 @@ function buildUtmGeoJSON() {
 function addUtmToMap() {
     if (map.getSource("utm")) return;
     map.addSource("utm", { type: "geojson", data: buildUtmGeoJSON() });
-    map.addLayer({ id: "utm-lines", type: "line", source: "utm", paint: { "line-color": utmColor, "line-width": 1, "line-dasharray": [4, 4] } });
+    map.addLayer({ id: "utm-lines", type: "line", source: "utm", paint: { "line-color": utmColor, "line-width": utmWeight, "line-dasharray": [4, 4] } });
 }
 
 function removeUtmFromMap() {
     if (map.getLayer("utm-lines")) map.removeLayer("utm-lines");
     if (map.getSource("utm")) map.removeSource("utm");
+}
+
+function setUtmWeight(val) {
+    utmWeight = val;
+    if (map.getLayer("utm-lines")) map.setPaintProperty("utm-lines", "line-width", utmWeight);
 }
 
 function setUtmColor(idx) {
@@ -477,6 +489,12 @@ function toggleGridMenu() {
         menu.appendChild(item);
     });
     var sep = document.createElement("div"); sep.className = "toolbar-menu-sep"; menu.appendChild(sep);
+    var sliderRow = document.createElement("div");
+    sliderRow.className = "toolbar-menu-slider";
+    sliderRow.innerHTML = '<input type="range" min="0.5" max="3" step="0.5" value="' + gridWeight + '" oninput="setGridWeight(parseFloat(this.value))">';
+    sliderRow.onclick = function (e) { e.stopPropagation(); };
+    menu.appendChild(sliderRow);
+    var sep2 = document.createElement("div"); sep2.className = "toolbar-menu-sep"; menu.appendChild(sep2);
     var off = document.createElement("div");
     off.className = "toolbar-menu-item" + (!gridVisible ? " active" : "");
     off.textContent = "Off";
@@ -499,6 +517,12 @@ function toggleUtmMenu() {
         menu.appendChild(item);
     });
     var sep = document.createElement("div"); sep.className = "toolbar-menu-sep"; menu.appendChild(sep);
+    var sliderRow = document.createElement("div");
+    sliderRow.className = "toolbar-menu-slider";
+    sliderRow.innerHTML = '<input type="range" min="0.5" max="3" step="0.5" value="' + utmWeight + '" oninput="setUtmWeight(parseFloat(this.value))">';
+    sliderRow.onclick = function (e) { e.stopPropagation(); };
+    menu.appendChild(sliderRow);
+    var sep2 = document.createElement("div"); sep2.className = "toolbar-menu-sep"; menu.appendChild(sep2);
     var off = document.createElement("div");
     off.className = "toolbar-menu-item" + (!utmVisible ? " active" : "");
     off.textContent = "Off";
@@ -547,8 +571,8 @@ var AGE_COLORS = [
     { days: 1,    color: [74, 222, 128] },
     { days: 7,    color: [34, 160, 70] },
     { days: 30,   color: [130, 190, 255] },
-    { days: 90,   color: [25, 70, 170] },
-    { days: 180,  color: [200, 200, 208] },
+    { days: 120,  color: [25, 70, 170] },
+    { days: 365,  color: [130, 130, 140] },
     { days: Infinity, color: [90, 90, 98] }
 ];
 var NULL_DATE_COLOR = [30, 30, 30];
@@ -592,7 +616,7 @@ function toggleFill() {
     var opacity = layerFilled ? 0.8 : 0;
     if (map.getLayer("remote-fill")) map.setPaintProperty("remote-fill", "fill-opacity", opacity);
     ["up_to_date", "updates_available", "missing_from_disk", "removed_from_scheme"].forEach(function (cat) {
-        if (map.getLayer("tracked-" + cat + "-fill")) map.setPaintProperty("tracked-" + cat + "-fill", "fill-opacity", layerFilled ? 0.7 : 0);
+        if (map.getLayer("tracked-" + cat + "-fill")) map.setPaintProperty("tracked-" + cat + "-fill", "fill-opacity", layerFilled ? 1 : 0);
     });
 }
 
@@ -606,6 +630,7 @@ function addRemoteToMap(geojson) {
         map.addLayer({ id: "remote-fill", type: "fill", source: "remote", paint: { "fill-color": ["get", "_color"], "fill-opacity": layerFilled ? 0.8 : 0 } });
         map.addLayer({ id: "remote-outline", type: "line", source: "remote", paint: { "line-color": ["get", "_color"], "line-width": 1, "line-opacity": 0.7 } });
     }
+    raiseTrackedLayers();
     raiseDrawLayers();
 }
 
@@ -619,17 +644,38 @@ function removeRemoteFromMap() {
 
 var trackedCategories = ["up_to_date", "updates_available", "missing_from_disk", "removed_from_scheme"];
 
+function raiseTrackedLayers() {
+    // Fills first, then outlines on top
+    trackedCategories.forEach(function (cat) {
+        var srcId = "tracked-" + cat;
+        if (map.getLayer(srcId + "-fill")) map.moveLayer(srcId + "-fill");
+    });
+    trackedCategories.forEach(function (cat) {
+        var srcId = "tracked-" + cat;
+        if (map.getLayer(srcId + "-outline")) map.moveLayer(srcId + "-outline");
+    });
+}
+
 function addTrackedToMap(data) {
+    // Add all fills first
     trackedCategories.forEach(function (cat) {
         var geojson = data[cat];
         if (!geojson || geojson.features.length === 0) return;
         var srcId = "tracked-" + cat;
-        if (map.getSource(srcId)) {
-            map.getSource(srcId).setData(geojson);
-        } else {
+        if (!map.getSource(srcId)) {
             map.addSource(srcId, { type: "geojson", data: geojson });
-            map.addLayer({ id: srcId + "-fill", type: "fill", source: srcId, paint: { "fill-color": TRACKED_COLORS[cat], "fill-opacity": layerFilled ? 0.7 : 0 } });
-            map.addLayer({ id: srcId + "-outline", type: "line", source: srcId, paint: { "line-color": TRACKED_COLORS[cat], "line-width": 1, "line-opacity": 0.8 } });
+            map.addLayer({ id: srcId + "-fill", type: "fill", source: srcId, paint: { "fill-color": TRACKED_COLORS[cat], "fill-opacity": layerFilled ? 1 : 0 } });
+        } else {
+            map.getSource(srcId).setData(geojson);
+        }
+    });
+    // Then all outlines on top so they're visible above fills
+    trackedCategories.forEach(function (cat) {
+        var geojson = data[cat];
+        if (!geojson || geojson.features.length === 0) return;
+        var srcId = "tracked-" + cat;
+        if (!map.getLayer(srcId + "-outline")) {
+            map.addLayer({ id: srcId + "-outline", type: "line", source: srcId, paint: { "line-color": "rgba(0,0,0,0.3)", "line-width": 1 } });
         }
     });
     raiseDrawLayers();
@@ -657,7 +703,19 @@ map.on("click", function (e) {
     if (existing.length === 0) { popup.remove(); return; }
     var features = map.queryRenderedFeatures(e.point, { layers: existing });
     if (features.length === 0) { popup.remove(); return; }
-    var props = Object.assign({}, features[0].properties);
+    // Pick the smallest resolution feature (topmost visually)
+    var best = features[0];
+    if (features.length > 1) {
+        var bestRes = Infinity;
+        features.forEach(function (f) {
+            var r = parseFloat(f.properties.Resolution || f.properties.resolution || "Infinity");
+            if (!isNaN(r) && r < bestRes) {
+                bestRes = r;
+                best = f;
+            }
+        });
+    }
+    var props = Object.assign({}, best.properties);
     delete props._color;
     var html = buildPopupHtml(props);
     if (html) popup.setLngLat(e.lngLat).setHTML(html).addTo(map);
@@ -699,12 +757,20 @@ function readdAllSources() {
 // ── Legend ────────────────────────────────────────────
 
 var legendDiv = null;
+var remoteSourceLabel = "";
+var trackedDirName = "";
+
+function getDirName(path) {
+    var parts = path.replace(/\\/g, "/").replace(/\/+$/, "").split("/");
+    return parts[parts.length - 1] || path;
+}
 
 function buildLegendHtml() {
     var html = "";
     if (remoteActive) {
         html += "<div class='legend-section'>NBS Source</div>";
-        var labels = ["< 1 day", "< 1 week", "< 1 month", "< 3 months", "< 6 months", "6+ months"];
+        if (remoteSourceLabel) html += "<div class='legend-subtitle'>" + remoteSourceLabel + "</div>";
+        var labels = ["< 1 day", "< 1 week", "< 1 month", "< 4 months", "< 12 months", "12+ months"];
         for (var i = 0; i < AGE_COLORS.length; i++) {
             var c = AGE_COLORS[i].color;
             html += "<div class='legend-row'><span class='legend-swatch' style='background:rgb(" + c[0] + "," + c[1] + "," + c[2] + ")'></span>" + labels[i] + "</div>";
@@ -714,6 +780,7 @@ function buildLegendHtml() {
     if (trackedActive) {
         if (html) html += "<div class='legend-divider'></div>";
         html += "<div class='legend-section'>Your Project</div>";
+        if (trackedDirName) html += "<div class='legend-subtitle'>" + trackedDirName + "</div>";
         var cats = [["up_to_date", "Up to date"], ["updates_available", "Updates available"], ["missing_from_disk", "Missing from disk"], ["removed_from_scheme", "Removed from scheme"]];
         for (var j = 0; j < cats.length; j++) {
             html += "<div class='legend-row'><span class='legend-swatch' style='background:" + TRACKED_COLORS[cats[j][0]] + "'></span>" + cats[j][1] + "</div>";
@@ -734,6 +801,7 @@ function updateLegend() {
 // ── Layer state & caching ────────────────────────────
 
 var remoteActive = false;
+var remoteRequestedSource = null;
 var trackedActive = false;
 var remoteLoading = false;
 var trackedLoading = false;
@@ -747,14 +815,7 @@ var trackedSkipCache = false;
 var trackedIsReload = false;
 var trackedStartup = false;
 
-function clearAllLayers() {
-    if (remoteActive || remoteLoading) {
-        remoteActive = false;
-        remoteLoading = false;
-        removeRemoteFromMap();
-        var rb = document.getElementById("btn-layer-remote");
-        rb.classList.remove("layer-on", "layer-loading");
-    }
+function clearTrackedOnly() {
     if (trackedActive || trackedLoading) {
         trackedActive = false;
         trackedLoading = false;
@@ -766,6 +827,17 @@ function clearAllLayers() {
         tb.classList.remove("layer-on", "layer-loading");
     }
     updateLegend();
+}
+
+function clearAllLayers() {
+    if (remoteActive || remoteLoading) {
+        remoteActive = false;
+        remoteLoading = false;
+        removeRemoteFromMap();
+        var rb = document.getElementById("btn-layer-remote");
+        rb.classList.remove("layer-on", "layer-loading");
+    }
+    clearTrackedOnly();
 }
 
 function toggleRemoteLayer() {
@@ -781,6 +853,7 @@ function toggleRemoteLayer() {
         var source = document.getElementById("data-source").value;
         if (remoteCache.source === source && remoteCache.data && (Date.now() - remoteCache.time) < REMOTE_CACHE_MS) {
             remoteActive = true;
+            remoteSourceLabel = document.getElementById("source-label").textContent;
             btn.classList.add("layer-on");
             addRemoteToMap(remoteCache.data);
             updateLegend();
@@ -788,8 +861,11 @@ function toggleRemoteLayer() {
         }
         remoteActive = true;
         remoteLoading = true;
+        remoteRequestedSource = source;
+        remoteSourceLabel = document.getElementById("source-label").textContent;
         btn.classList.add("layer-on");
         btn.classList.add("layer-loading");
+        showToast("Pulling " + remoteSourceLabel + " NBS Source...");
         bridge.load_remote_layer(source);
     }
 }
@@ -811,6 +887,7 @@ function toggleTrackedLayer() {
         if (!trackedSkipCache && trackedCache.dir === dir && trackedCache.source === source
             && trackedCache.data && (Date.now() - trackedCache.time) < TRACKED_CACHE_MS) {
             trackedActive = true;
+            trackedDirName = getDirName(dir);
             btn.classList.add("layer-on");
             addTrackedToMap(trackedCache.data);
             updateLegend();
@@ -819,6 +896,7 @@ function toggleTrackedLayer() {
         trackedSkipCache = false;
         trackedActive = true;
         trackedLoading = true;
+        trackedDirName = getDirName(dir);
         btn.classList.add("layer-on");
         btn.classList.add("layer-loading");
         bridge.load_tracked_layer(dir, source);
@@ -857,6 +935,15 @@ function onLayersReady(data) {
         remoteLoading = false;
         var btn = document.getElementById("btn-layer-remote");
         btn.classList.remove("layer-loading");
+        // Discard if remote was turned off or source changed
+        if (!remoteActive) {
+            remoteLoading = false;
+            return;
+        }
+        if (data.source && remoteRequestedSource && data.source !== remoteRequestedSource) {
+            remoteLoading = false;
+            return;
+        }
         if (data.error) {
             remoteActive = false;
             btn.classList.remove("layer-on");
@@ -878,7 +965,12 @@ function onLayersReady(data) {
             trackedActive = false;
             trackedIsReload = false;
             btn.classList.remove("layer-on");
-            showToast(data.error);
+            var errMsg = data.error || "";
+            if (errMsg.indexOf("Registry database not found") >= 0 || errMsg.indexOf("Folder path not found") >= 0) {
+                showToast("No project found here yet. Fetch to get started");
+            } else {
+                showToast(errMsg);
+            }
             return;
         }
         trackedCache.dir = document.getElementById("project-dir").value;

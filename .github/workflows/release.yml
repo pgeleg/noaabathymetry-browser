@@ -43,7 +43,7 @@ jobs:
         # TODO: Pin BlueTopo to release tag when dev features are released
         # TODO: Add dependency lockfile for full reproducibility
         run: |
-          conda install -y gdal
+          conda install -y gdal hdf5
           pip install aiohttp==3.13.5 certifi==2026.2.25 pyinstaller==6.19.0
           pip install git+https://github.com/noaa-ocs-hydrography/BlueTopo.git@dev
           pip install -e .

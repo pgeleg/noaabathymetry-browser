@@ -152,6 +152,7 @@ def _read_remote_geojson(cfg):
     bucket = cfg["bucket"]
     prefix = cfg["geom_prefix"]
     data_source = cfg["canonical_name"]
+    cache_key = bucket + "/" + prefix
 
     client = _get_s3_client()
     source_key, _ = _list_s3_latest(
@@ -159,7 +160,7 @@ def _read_remote_geojson(cfg):
     if source_key is None:
         return None, False
 
-    cached = _etag_cache.get(data_source)
+    cached = _etag_cache.get(cache_key)
     if cached and cached.get("etag"):
         try:
             remote_etag = _get_remote_etag(client, bucket, source_key)
@@ -188,11 +189,11 @@ def _read_remote_geojson(cfg):
             md5 = hashlib.md5(raw).hexdigest()
             remote_etag = _get_remote_etag(client, bucket, source_key)
             if remote_etag and md5 == remote_etag:
-                _etag_cache[data_source] = {"etag": remote_etag, "geojson": result}
+                _etag_cache[cache_key] = {"etag": remote_etag, "geojson": result}
             else:
-                _etag_cache.pop(data_source, None)
+                _etag_cache.pop(cache_key, None)
         except Exception:
-            _etag_cache.pop(data_source, None)
+            _etag_cache.pop(cache_key, None)
 
         return result, False
     finally:
@@ -328,24 +329,25 @@ class Bridge:
 
     def load_remote_layer(self, data_source):
         data_source = data_source if data_source else None
+        source_key = data_source  # Track which source this request is for
 
         def worker():
             try:
                 cfg, _ = resolve_data_source(data_source)
                 if not cfg.get("geom_prefix"):
                     self._send({"type": "layers_ready",
-                                "data": {"layer": "remote", "error": "No remote scheme for this source"}})
+                                "data": {"layer": "remote", "source": source_key, "error": "No remote scheme for this source"}})
                     return
                 geojson, from_cache = _read_remote_geojson(cfg)
                 if geojson:
                     self._send({"type": "layers_ready",
-                                "data": {"layer": "remote", "data": geojson, "cached": from_cache}})
+                                "data": {"layer": "remote", "source": source_key, "data": geojson, "cached": from_cache}})
                 else:
                     self._send({"type": "layers_ready",
-                                "data": {"layer": "remote", "error": "Could not read remote scheme"}})
+                                "data": {"layer": "remote", "source": source_key, "error": "Could not read remote scheme"}})
             except Exception as e:
                 self._send({"type": "layers_ready",
-                            "data": {"layer": "remote", "error": str(e)}})
+                            "data": {"layer": "remote", "source": source_key, "error": str(e)}})
 
         t = threading.Thread(target=worker, daemon=True)
         t.start()

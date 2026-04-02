@@ -51,17 +51,31 @@ def _mac_choose_file():
         return ""
 
 
+def _win_startupinfo():
+    """Hide the PowerShell console window on Windows."""
+    si = subprocess.STARTUPINFO()
+    si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+    si.wShowWindow = 0  # SW_HIDE
+    return si
+
+
 def _win_choose_folder():
     try:
         ps = (
             'Add-Type -AssemblyName System.Windows.Forms;'
-            '$d = New-Object System.Windows.Forms.FolderBrowserDialog;'
-            '$d.Description = "Select Project Directory";'
-            'if ($d.ShowDialog() -eq "OK") { $d.SelectedPath } else { "" }'
+            '$d = New-Object System.Windows.Forms.OpenFileDialog;'
+            '$d.ValidateNames = $false;'
+            '$d.CheckFileExists = $false;'
+            '$d.CheckPathExists = $true;'
+            '$d.FileName = "Select Folder";'
+            '$d.Title = "Select Project Directory";'
+            '$d.Filter = "Folders|no_file";'
+            'if ($d.ShowDialog() -eq "OK") { [System.IO.Path]::GetDirectoryName($d.FileName) } else { "" }'
         )
         result = subprocess.run(
-            ["powershell", "-NoProfile", "-Command", ps],
+            ["powershell", "-NoProfile", "-WindowStyle", "Hidden", "-Command", ps],
             capture_output=True, text=True, timeout=300,
+            startupinfo=_win_startupinfo(),
         )
         return result.stdout.strip()
     except Exception:
@@ -79,8 +93,9 @@ def _win_choose_file():
             'if ($d.ShowDialog() -eq "OK") { $d.FileName } else { "" }'
         )
         result = subprocess.run(
-            ["powershell", "-NoProfile", "-Command", ps],
+            ["powershell", "-NoProfile", "-WindowStyle", "Hidden", "-Command", ps],
             capture_output=True, text=True, timeout=300,
+            startupinfo=_win_startupinfo(),
         )
         return result.stdout.strip()
     except Exception:

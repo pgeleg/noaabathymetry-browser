@@ -60,7 +60,7 @@ function onDirInput() {
                     input.value = p;
                     hideSuggestions();
                     glowElement(input);
-                    clearAllLayers();
+                    clearTrackedOnly();
                 };
                 box.appendChild(div);
             });
@@ -127,10 +127,19 @@ function showRecents() {
             div.appendChild(sourceSpan);
             div.onclick = function () {
                 var input = document.getElementById("project-dir");
+                var currentSource = document.getElementById("data-source").value;
                 input.value = path;
                 setSource(source);
                 hideSuggestions();
-                clearAllLayers();
+                if (source !== currentSource) {
+                    var wasRemoteActive = remoteActive;
+                    clearAllLayers();
+                    if (wasRemoteActive) {
+                        toggleRemoteLayer();
+                    }
+                } else {
+                    clearTrackedOnly();
+                }
                 glowElement(input);
                 glowElement(document.getElementById("source-select"));
             };
@@ -174,7 +183,7 @@ document.getElementById("project-dir").addEventListener("keydown", function (e) 
         hideSuggestions();
         input.blur();
         glowElement(input);
-        clearAllLayers();
+        clearTrackedOnly();
     } else if (e.key === "Escape") {
         hideSuggestions();
     }
@@ -203,7 +212,7 @@ document.getElementById("project-dir").addEventListener("blur", function () {
     }
     if (this.value !== lastCommittedDir) {
         lastCommittedDir = this.value;
-        clearAllLayers();
+        clearTrackedOnly();
     }
 });
 
@@ -220,7 +229,7 @@ function browseDir() {
             var input = document.getElementById("project-dir");
             input.value = path;
             glowElement(input);
-            clearAllLayers();
+            clearTrackedOnly();
         }
     });
 }
@@ -246,7 +255,11 @@ function pickSource(el) {
     });
     toggleSourceDropdown();
     glowElement(document.getElementById("source-select"));
+    var wasRemoteActive = remoteActive;
     clearAllLayers();
+    if (wasRemoteActive) {
+        toggleRemoteLayer();
+    }
 }
 
 // Close dropdown when clicking outside
@@ -377,28 +390,32 @@ function updateProgress(line) {
 }
 
 function onCommandDone(data) {
+    var wasCommand = currentCommand;
+    var fetched = false;
     try {
         if (data.ok) {
             setStatus("Complete");
             showToast("Complete");
-            // If fetch downloaded new tiles, refresh or invalidate tracked layer
-            var fetched = data.result && data.result.downloaded && data.result.downloaded.length > 0;
-            if (fetched) {
-                if (trackedActive) {
-                    reloadTrackedLayer();
-                } else {
-                    trackedCache.time = 0;
-                }
-            }
+            fetched = data.result && data.result.downloaded && data.result.downloaded.length > 0;
         } else {
             appendLog("Error: " + data.error);
             setStatus("Failed");
         }
     } finally {
-        var doneLabel = "· " + currentCommand.charAt(0).toUpperCase() + currentCommand.slice(1) + " Done";
+        var doneLabel = wasCommand ? "· " + wasCommand.charAt(0).toUpperCase() + wasCommand.slice(1) + " Done" : "";
         currentCommand = null;
         setButtonsDisabled(false);
         document.getElementById("log-command").textContent = doneLabel;
+    }
+    // After currentCommand is cleared, refresh tracked layer
+    if (fetched) {
+        if (trackedActive) {
+            reloadTrackedLayer();
+        } else {
+            trackedIsReload = true;
+            trackedSkipCache = true;
+            toggleTrackedLayer();
+        }
     }
 }
 
