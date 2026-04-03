@@ -17,7 +17,6 @@ function _onBridgeReady() {
             setSource(source);
             var basemap = recent.basemap;
             if (basemap) setBasemapByName(basemap);
-            trackedIsReload = true;
             trackedSkipCache = true;
             trackedStartup = true;
             toggleTrackedLayer();
