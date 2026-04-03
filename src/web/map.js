@@ -856,7 +856,7 @@ function getDirName(path) {
 function buildLegendHtml() {
     var html = "";
     if (remoteActive) {
-        html += "<div class='legend-section'>" + (remoteSourceLabel || "NBS Source") + "</div>";
+        html += "<div class='legend-section'>" + escapeHtml(remoteSourceLabel || "NBS Source") + "</div>";
         var labels = ["< 1 day", "< 1 week", "< 1 month", "< 4 months", "< 12 months", "12+ months"];
         for (var i = 0; i < AGE_COLORS.length; i++) {
             var c = AGE_COLORS[i].color;
@@ -866,7 +866,7 @@ function buildLegendHtml() {
     }
     if (trackedActive) {
         if (html) html += "<div class='legend-divider'></div>";
-        html += "<div class='legend-section'>" + (trackedDirName || "Your Project") + "</div>";
+        html += "<div class='legend-section'>" + escapeHtml(trackedDirName || "Your Project") + "</div>";
         var cats = [["up_to_date", "Up to date"], ["updates_available", "Updates available"], ["missing_from_disk", "Missing from disk"], ["removed_from_scheme", "Removed from scheme"]];
         for (var j = 0; j < cats.length; j++) {
             html += "<div class='legend-row'><span class='legend-swatch' style='background:" + TRACKED_COLORS[cats[j][0]] + "'></span>" + cats[j][1] + "</div>";
