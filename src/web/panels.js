@@ -296,7 +296,7 @@ function switchView(view) {
 
 function getToastBottom() {
     var base = 10;
-    var els = ["statusbar", "command-area", "log-header"];
+    var els = ["command-area", "log-header"];
     els.forEach(function (id) {
         var el = document.getElementById(id);
         if (el) base += el.offsetHeight;
@@ -319,9 +319,8 @@ function showToast(msg, cls) {
     setTimeout(function () { toast.remove(); }, duration);
 }
 
-function setStatus(left, right) {
+function setStatus(left) {
     document.getElementById("statusbar-left").textContent = left || "";
-    document.getElementById("statusbar-right").textContent = right || "";
 }
 
 // ── Log streaming & results ─────────────────────────

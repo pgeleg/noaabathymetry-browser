@@ -2,20 +2,22 @@
 
 // ── Basemaps ─────────────────────────────────────────
 
+var cartoAttribution = '© <a href="https://carto.com/" target="_blank">CARTO</a>, © <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>';
+
 var basemapStyles = {
     "Voyager": {
         version: 8,
-        sources: { carto: { type: "raster", tiles: ["https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png", "https://b.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png"], tileSize: 256 } },
+        sources: { carto: { type: "raster", tiles: ["https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png", "https://b.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png"], tileSize: 256, attribution: cartoAttribution } },
         layers: [{ id: "carto", type: "raster", source: "carto" }]
     },
     "Dark": {
         version: 8,
-        sources: { carto: { type: "raster", tiles: ["https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png", "https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png"], tileSize: 256 } },
+        sources: { carto: { type: "raster", tiles: ["https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png", "https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png"], tileSize: 256, attribution: cartoAttribution } },
         layers: [{ id: "carto", type: "raster", source: "carto" }]
     },
     "Light": {
         version: 8,
-        sources: { carto: { type: "raster", tiles: ["https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png", "https://b.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png"], tileSize: 256 } },
+        sources: { carto: { type: "raster", tiles: ["https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png", "https://b.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png"], tileSize: 256, attribution: cartoAttribution } },
         layers: [{ id: "carto", type: "raster", source: "carto" }]
     },
 };
@@ -50,7 +52,6 @@ map.getCanvas().addEventListener("wheel", function (e) {
     map.once("moveend", function () { scrollZooming = false; });
 }, { passive: false });
 
-map.addControl(new maplibregl.AttributionControl({ compact: true }), "bottom-right");
 map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-left");
 
 function setBasemapByName(name) {
@@ -298,7 +299,6 @@ map.on("dblclick", function (e) {
 var coordDiv = document.createElement("div");
 coordDiv.className = "map-coords";
 coordDiv.textContent = "0.0000, 0.0000";
-document.getElementById("map").appendChild(coordDiv);
 
 map.on("mousemove", function (e) {
     coordDiv.textContent = e.lngLat.lat.toFixed(4) + ", " + e.lngLat.lng.toFixed(4);
@@ -440,11 +440,12 @@ var ToolbarControl = {
             '<a class="toolbar-btn" id="toolbar-basemap" href="#" onclick="event.preventDefault();toggleBasemapMenu()" title="Basemap">◫</a>' +
             '<a class="toolbar-btn" id="toolbar-grid" href="#" onclick="event.preventDefault();toggleGridMenu()" title="Lat/long grid">#</a>' +
             '<a class="toolbar-btn" id="toolbar-utm" href="#" onclick="event.preventDefault();toggleUtmMenu()" title="UTM zones">▮</a>' +
-            '<a class="toolbar-btn" id="toolbar-wmts" href="#" onclick="event.preventDefault();toggleWmtsMenu()" title="NOAA Overlays">⊞</a>' +
+            '<a class="toolbar-btn" id="toolbar-wmts" href="#" onclick="event.preventDefault();toggleWmtsOverlay()" title="BlueTopo WMTS Tiles">⊞</a>' +
+            '<a class="toolbar-btn" id="toolbar-credits" href="#" onclick="event.preventDefault();toggleCreditsMenu()" title="Credits">ⓘ</a>' +
             '<div class="toolbar-menu" id="basemap-menu"></div>' +
             '<div class="toolbar-menu" id="grid-menu"></div>' +
             '<div class="toolbar-menu" id="utm-menu"></div>' +
-            '<div class="toolbar-menu" id="wmts-menu"></div>';
+            '<div class="toolbar-menu" id="credits-menu"></div>';
         return div;
     },
     onRemove: function () {}
@@ -452,10 +453,36 @@ var ToolbarControl = {
 map.addControl(ToolbarControl, "top-left");
 
 function closeAllMenus() {
-    ["basemap-menu", "grid-menu", "utm-menu", "wmts-menu"].forEach(function (id) {
+    ["basemap-menu", "grid-menu", "utm-menu", "credits-menu"].forEach(function (id) {
         var m = document.getElementById(id);
         if (m) m.style.display = "none";
     });
+}
+
+function getCreditsHtml() {
+    var items = ['© <a href="https://carto.com/" target="_blank">CARTO</a>',
+                 '© <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>'];
+    var seen = [cartoAttribution];
+    var style = map.getStyle();
+    if (style && style.sources) {
+        for (var key in style.sources) {
+            var attr = style.sources[key].attribution;
+            if (attr && seen.indexOf(attr) < 0) {
+                seen.push(attr);
+                items.push(attr);
+            }
+        }
+    }
+    return items.join("<br>");
+}
+
+function toggleCreditsMenu() {
+    var menu = document.getElementById("credits-menu");
+    var wasOpen = menu.style.display === "block";
+    closeAllMenus();
+    if (wasOpen) return;
+    menu.innerHTML = '<div class="toolbar-menu-credits">' + getCreditsHtml() + '</div>';
+    menu.style.display = "block";
 }
 
 function toggleBasemapMenu() {
@@ -535,11 +562,7 @@ function toggleUtmMenu() {
 
 // ── WMTS overlays (nowCOAST) ─────────────────────────
 
-var wmtsLayers = [
-    { id: "wmts-bathymetry", label: "Bathymetry", layer: "bluetopo:bathymetry" },
-    { id: "wmts-hillshade", label: "Hillshade", layer: "bluetopo:hillshade" },
-];
-var wmtsActive = {};
+var wmtsOverlayActive = false;
 
 function wmtsUrl(layer) {
     return "https://nowcoast.noaa.gov/geoserver/gwc/service/wmts" +
@@ -549,62 +572,34 @@ function wmtsUrl(layer) {
         "&TILEMATRIXSET=EPSG:3857&TILEMATRIX=EPSG:3857:{z}&TILEROW={y}&TILECOL={x}";
 }
 
-function reorderWmtsLayers() {
-    // Ensure hillshade is always below bathymetry, both below vector overlays
-    var firstVector = null;
-    var layers = map.getStyle().layers;
-    for (var i = 0; i < layers.length; i++) {
-        if (layers[i].id.indexOf("remote") === 0 || layers[i].id.indexOf("tracked") === 0 || layers[i].id.indexOf("draw") === 0) {
-            firstVector = layers[i].id;
-            break;
-        }
-    }
-    // Order: hillshade (bottom) → bathymetry → vector overlays
-    if (map.getLayer("wmts-hillshade")) map.moveLayer("wmts-hillshade", firstVector);
-    if (map.getLayer("wmts-bathymetry")) map.moveLayer("wmts-bathymetry", firstVector);
-}
-
-function toggleWmtsLayer(cfg) {
-    if (wmtsActive[cfg.id]) {
-        if (map.getLayer(cfg.id)) map.removeLayer(cfg.id);
-        if (map.getSource(cfg.id)) map.removeSource(cfg.id);
-        delete wmtsActive[cfg.id];
-    } else {
-        map.addSource(cfg.id, {
-            type: "raster",
-            tiles: [wmtsUrl(cfg.layer)],
-            tileSize: 256,
-            attribution: "NOAA nowCOAST",
-        });
-        map.addLayer({ id: cfg.id, type: "raster", source: cfg.id, paint: { "raster-opacity": 0.7 } });
-        wmtsActive[cfg.id] = true;
-        reorderWmtsLayers();
-    }
-}
-
-function toggleWmtsMenu() {
-    var menu = document.getElementById("wmts-menu");
-    var wasOpen = menu.style.display === "block";
+function toggleWmtsOverlay() {
     closeAllMenus();
-    if (wasOpen) return;
-    menu.innerHTML = "";
-    var header = document.createElement("div");
-    header.className = "toolbar-menu-header";
-    header.textContent = "BLUETOPO";
-    menu.appendChild(header);
-    var sep = document.createElement("div"); sep.className = "toolbar-menu-sep"; menu.appendChild(sep);
-    wmtsLayers.forEach(function (cfg) {
-        var item = document.createElement("div");
-        item.className = "toolbar-menu-item" + (wmtsActive[cfg.id] ? " active" : "");
-        item.textContent = cfg.label;
-        item.onclick = function (e) {
-            e.stopPropagation();
-            toggleWmtsLayer(cfg);
-            item.classList.toggle("active", !!wmtsActive[cfg.id]);
-        };
-        menu.appendChild(item);
-    });
-    menu.style.display = "block";
+    var btn = document.getElementById("toolbar-wmts");
+    if (wmtsOverlayActive) {
+        ["wmts-bathymetry", "wmts-hillshade"].forEach(function (id) {
+            if (map.getLayer(id)) map.removeLayer(id);
+            if (map.getSource(id)) map.removeSource(id);
+        });
+        wmtsOverlayActive = false;
+        btn.classList.remove("toolbar-active");
+    } else {
+        // Find first vector overlay to insert below
+        var firstVector = null;
+        var layers = map.getStyle().layers;
+        for (var i = 0; i < layers.length; i++) {
+            if (layers[i].id.indexOf("remote") === 0 || layers[i].id.indexOf("tracked") === 0 || layers[i].id.indexOf("draw") === 0) {
+                firstVector = layers[i].id;
+                break;
+            }
+        }
+        // Hillshade below bathymetry, both below vector overlays
+        map.addSource("wmts-hillshade", { type: "raster", tiles: [wmtsUrl("bluetopo:hillshade")], tileSize: 256, attribution: 'WMTS served by <a href="https://nowcoast.noaa.gov" target="_blank">nowCOAST</a>' });
+        map.addLayer({ id: "wmts-hillshade", type: "raster", source: "wmts-hillshade", paint: { "raster-opacity": 1 } }, firstVector);
+        map.addSource("wmts-bathymetry", { type: "raster", tiles: [wmtsUrl("bluetopo:bathymetry")], tileSize: 256 });
+        map.addLayer({ id: "wmts-bathymetry", type: "raster", source: "wmts-bathymetry", paint: { "raster-opacity": 0.7 } }, firstVector);
+        wmtsOverlayActive = true;
+        btn.classList.add("toolbar-active");
+    }
 }
 
 document.addEventListener("click", function (e) {
@@ -622,6 +617,7 @@ layerDiv.innerHTML =
     '<span class="layer-dot tracked"></span>Your Project</button>' +
     '<button id="btn-layer-fill" class="layer-toggle layer-on" onclick="toggleFill()" title="Toggle fill">' +
     '<span class="fill-icon"></span>Fill</button>';
+layerDiv.appendChild(coordDiv);
 document.getElementById("map").appendChild(layerDiv);
 
 // ── Tile scheme layers ───────────────────────────────

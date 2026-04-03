@@ -14,7 +14,7 @@
     --topbar-input-border: rgba(255, 255, 255, 0.15);
 
     /* ── Bars (commands, output, status) ── */
-    --bar-bg: #1a365d;
+    --bar-bg: rgb(18, 40, 70);
     --bar-fg: rgb(200, 200, 200);
     --bar-fg-muted: rgb(140, 140, 150);
     --bar-fg-dim: rgb(100, 100, 110);
@@ -58,6 +58,7 @@ body {
     display: flex;
     flex-direction: column;
     height: 100vh;
+    min-width: 960px;
     font-family: var(--font-ui);
     background: var(--bar-bg);
     color: var(--bar-fg);
@@ -530,8 +531,9 @@ button:disabled {
 
 .map-legend {
     position: absolute;
-    bottom: 30px;
+    bottom: 4px;
     right: 10px;
+    z-index: 1;
     background: var(--map-overlay-bg);
     border-radius: 8px;
     padding: 8px 10px;
@@ -540,7 +542,6 @@ button:disabled {
     color: var(--map-overlay-fg-muted);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4), 0 0 0 1px var(--map-overlay-border);
     line-height: 1;
-    z-index: 1;
 }
 
 .legend-row {
@@ -662,6 +663,24 @@ button:disabled {
     to { opacity: 0; }
 }
 
+.toolbar-menu-credits {
+    padding: 8px 12px;
+    font-size: 10px;
+    font-family: var(--font-ui);
+    color: rgb(100, 100, 100);
+    line-height: 1.5;
+    white-space: nowrap;
+}
+
+.toolbar-menu-credits a {
+    color: rgb(80, 80, 80);
+    text-decoration: none;
+}
+
+.toolbar-menu-credits a:hover {
+    text-decoration: underline;
+}
+
 /* ── Map toolbar ────────────────────────────────── */
 
 .maplibregl-ctrl-group button {
@@ -743,7 +762,7 @@ button:disabled {
 #basemap-menu { top: 0; }
 #grid-menu { top: 30px; }
 #utm-menu { top: 60px; }
-#wmts-menu { top: 90px; }
+#credits-menu { top: 120px; }
 
 .toolbar-menu-item {
     padding: 6px 14px;
@@ -833,9 +852,6 @@ button:disabled {
 /* ── Cursor coordinates ─────────────────────────── */
 
 .map-coords {
-    position: absolute;
-    bottom: 4px;
-    left: 10px;
     background: var(--map-overlay-bg);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
@@ -846,56 +862,54 @@ button:disabled {
     font-family: var(--font-mono);
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
     pointer-events: none;
-    z-index: 1;
 }
 
 /* ── Map layer control ───────────────────────────── */
 
 .map-layer-control {
     position: absolute;
-    top: 10px;
-    right: 10px;
-    display: flex;
-    gap: 4px;
+    bottom: 4px;
+    left: 10px;
     z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
 }
 
 .layer-toggle {
-    width: auto;
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 5px;
+    width: 130px;
     padding: 4px 10px;
     font-size: 11px;
     font-weight: 500;
     color: var(--map-overlay-fg-dim);
-    border: 1px solid var(--map-overlay-border);
+    border: none;
     background: var(--map-overlay-bg);
-    border-radius: 14px;
-    transition: all 0.2s;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    border-radius: 20px;
+    cursor: pointer;
+    transition: color 0.15s;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3), 0 0 0 1px var(--map-overlay-border);
 }
 
 .layer-toggle:hover {
     color: var(--map-overlay-fg-muted);
-    border-color: rgba(255, 255, 255, 0.12);
-    background: rgba(30, 30, 35, 0.9);
 }
 
 .layer-toggle.layer-on {
     color: var(--map-overlay-fg);
-    border-color: rgba(255, 255, 255, 0.15);
-    background: rgba(30, 30, 35, 0.95);
 }
 
 .layer-toggle.layer-loading {
     opacity: 0.6;
+    transition: opacity 0.3s;
 }
 
 .layer-toggle.layer-loading .layer-dot {
     opacity: 1;
-    animation: layer-dot-pulse 1s ease-in-out 0.7s infinite;
-    animation-fill-mode: backwards;
+    animation: layer-dot-pulse 1s ease-in-out infinite;
 }
 
 @keyframes layer-dot-pulse {
@@ -908,7 +922,7 @@ button:disabled {
     height: 7px;
     border-radius: 50%;
     flex-shrink: 0;
-    opacity: 0.4;
+    opacity: 0.25;
     transition: opacity 0.2s, box-shadow 0.2s;
 }
 
@@ -954,22 +968,39 @@ button:disabled {
     border-top: 1px solid var(--bar-border);
 }
 
+.command-left {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
 .command-bars {
     flex: 1;
 }
 
 .command-logo {
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 0 16px;
+    padding: 0 20px;
     border-left: 1px solid var(--bar-border);
-    align-self: center;
+    background: rgb(18, 40, 70);
+    gap: 6px;
 }
 
 .command-logo img {
     height: 95px;
     width: auto;
+}
+
+.logo-branding {
+    font-size: 8px;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.3);
+    white-space: nowrap;
 }
 
 /* ── Command bar ─────────────────────────────────── */
@@ -1118,11 +1149,15 @@ button:disabled {
 }
 
 #opt-geometry {
-    width: 300px;
+    width: 220px;
+}
+
+#opt-fetch-resolution {
+    width: 150px;
 }
 
 #opt-resolution {
-    width: 110px;
+    width: 80px;
     text-align: center;
 }
 
@@ -1155,9 +1190,4 @@ button:disabled {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-}
-
-#statusbar .right {
-    flex: 0 0 auto;
-    color: var(--bar-fg-dim);
 }
