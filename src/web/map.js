@@ -831,11 +831,15 @@ function readdAllSources() {
     map.addLayer({ id: "draw-line", type: "line", source: "draw-polygon", paint: { "line-color": "rgba(100,140,255,0.8)", "line-width": 2, "line-dasharray": [3, 2] } });
     map.addLayer({ id: "draw-vertices", type: "circle", source: "draw-points", paint: { "circle-radius": 4, "circle-color": "rgba(100,140,255,1)", "circle-stroke-color": "white", "circle-stroke-width": 1.5 } });
 
-    if (remoteActive && remoteCache.data) {
+    if (remoteActive && remoteCache.data && !remoteLoading) {
         addRemoteToMap(remoteCache.data);
     }
-    if (trackedActive && trackedCache.data) {
+    if (trackedActive && trackedCache.data && !trackedLoading) {
         addTrackedToMap(trackedCache.data);
+    }
+    if (wmtsOverlayActive) {
+        wmtsOverlayActive = false;
+        setWmtsOverlay(true);
     }
     if (gridVisible) addGridToMap();
     if (utmVisible) addUtmToMap();
@@ -903,6 +907,7 @@ var trackedIsReload = false;
 var trackedStartup = false;
 
 function clearTrackedOnly() {
+    var wasActive = trackedActive;
     if (trackedActive || trackedLoading) {
         trackedActive = false;
         trackedLoading = false;
@@ -914,6 +919,16 @@ function clearTrackedOnly() {
         tb.classList.remove("layer-on", "layer-loading");
     }
     updateLegend();
+    return wasActive;
+}
+
+function refreshTracked() {
+    var wasLoading = trackedLoading;
+    var wasActive = clearTrackedOnly();
+    if (wasActive && !currentCommand && !wasLoading) {
+        trackedSkipCache = true;
+        toggleTrackedLayer();
+    }
 }
 
 function clearAllLayers() {
@@ -925,6 +940,18 @@ function clearAllLayers() {
         rb.classList.remove("layer-on", "layer-loading");
     }
     clearTrackedOnly();
+}
+
+function refreshAllLayers() {
+    var wasRemote = remoteActive;
+    var wasTracked = trackedActive;
+    var wasTrackedLoading = trackedLoading;
+    clearAllLayers();
+    if (wasRemote) toggleRemoteLayer();
+    if (wasTracked && !currentCommand && !wasTrackedLoading) {
+        trackedSkipCache = true;
+        toggleTrackedLayer();
+    }
 }
 
 function toggleRemoteLayer() {
@@ -1052,7 +1079,7 @@ function onLayersReady(data) {
         btn.classList.remove("layer-loading");
         // Discard if tracked was turned off or this response is for a different directory
         if (!trackedActive) return;
-        if (data.dir && trackedRequestedDir && data.dir !== trackedRequestedDir) return;
+        if (trackedRequestedDir && data.dir !== trackedRequestedDir) return;
         if (data.error) {
             trackedActive = false;
             trackedIsReload = false;

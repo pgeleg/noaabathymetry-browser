@@ -58,9 +58,10 @@ function onDirInput() {
                 div.onclick = function () {
                     var input = document.getElementById("project-dir");
                     input.value = p;
+                    lastCommittedDir = p;
                     hideSuggestions();
                     glowElement(input);
-                    clearTrackedOnly();
+                    refreshTracked();
                 };
                 box.appendChild(div);
             });
@@ -129,16 +130,13 @@ function showRecents() {
                 var input = document.getElementById("project-dir");
                 var currentSource = document.getElementById("data-source").value;
                 input.value = path;
+                lastCommittedDir = path;
                 setSource(source);
                 hideSuggestions();
                 if (source !== currentSource) {
-                    var wasRemoteActive = remoteActive;
-                    clearAllLayers();
-                    if (wasRemoteActive) {
-                        toggleRemoteLayer();
-                    }
+                    refreshAllLayers();
                 } else {
-                    clearTrackedOnly();
+                    refreshTracked();
                 }
                 glowElement(input);
                 glowElement(document.getElementById("source-select"));
@@ -153,7 +151,7 @@ var selectedIndex = -1;
 
 document.getElementById("project-dir").addEventListener("keydown", function (e) {
     var box = document.getElementById("dir-suggestions");
-    var items = box.querySelectorAll("div");
+    var items = box.querySelectorAll("div:not(.suggestions-label)");
     if (items.length === 0) return;
 
     if (e.key === "ArrowDown") {
@@ -181,9 +179,10 @@ document.getElementById("project-dir").addEventListener("keydown", function (e) 
             input.setSelectionRange(input.value.length, input.value.length);
         }
         hideSuggestions();
+        lastCommittedDir = input.value;
         input.blur();
         glowElement(input);
-        clearTrackedOnly();
+        refreshTracked();
     } else if (e.key === "Escape") {
         hideSuggestions();
     }
@@ -206,14 +205,17 @@ function hideSuggestions() {
 // Hide suggestions when focus leaves or clicking elsewhere
 document.getElementById("project-dir").addEventListener("blur", function () {
     // Small delay so click on suggestion registers before hiding
-    setTimeout(hideSuggestions, 150);
-    if (this.value) {
-        glowElement(this);
-    }
-    if (this.value !== lastCommittedDir) {
-        lastCommittedDir = this.value;
-        clearTrackedOnly();
-    }
+    var input = this;
+    setTimeout(function () {
+        hideSuggestions();
+        if (input.value && input.value !== lastCommittedDir) {
+            glowElement(input);
+        }
+        if (input.value !== lastCommittedDir) {
+            lastCommittedDir = input.value;
+            refreshTracked();
+        }
+    }, 200);
 });
 
 document.addEventListener("click", function (e) {
@@ -228,8 +230,9 @@ function browseDir() {
         if (path) {
             var input = document.getElementById("project-dir");
             input.value = path;
+            lastCommittedDir = path;
             glowElement(input);
-            clearTrackedOnly();
+            refreshTracked();
         }
     });
 }
@@ -255,11 +258,7 @@ function pickSource(el) {
     });
     toggleSourceDropdown();
     glowElement(document.getElementById("source-select"));
-    var wasRemoteActive = remoteActive;
-    clearAllLayers();
-    if (wasRemoteActive) {
-        toggleRemoteLayer();
-    }
+    refreshAllLayers();
 }
 
 // Close dropdown when clicking outside
