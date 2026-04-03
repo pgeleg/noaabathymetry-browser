@@ -440,11 +440,12 @@ var ToolbarControl = {
             '<a class="toolbar-btn" id="toolbar-basemap" href="#" onclick="event.preventDefault();toggleBasemapMenu()" title="Basemap">◫</a>' +
             '<a class="toolbar-btn" id="toolbar-grid" href="#" onclick="event.preventDefault();toggleGridMenu()" title="Lat/long grid">#</a>' +
             '<a class="toolbar-btn" id="toolbar-utm" href="#" onclick="event.preventDefault();toggleUtmMenu()" title="UTM zones">▮</a>' +
-            '<a class="toolbar-btn" id="toolbar-wmts" href="#" onclick="event.preventDefault();toggleWmtsOverlay()" title="BlueTopo WMTS Tiles">⊞</a>' +
+            '<a class="toolbar-btn toolbar-btn-text" id="toolbar-wmts" href="#" onclick="event.preventDefault();toggleWmtsMenu()" title="BlueTopo WMTS Tiles">BT</a>' +
             '<a class="toolbar-btn" id="toolbar-credits" href="#" onclick="event.preventDefault();toggleCreditsMenu()" title="Credits">ⓘ</a>' +
             '<div class="toolbar-menu" id="basemap-menu"></div>' +
             '<div class="toolbar-menu" id="grid-menu"></div>' +
             '<div class="toolbar-menu" id="utm-menu"></div>' +
+            '<div class="toolbar-menu" id="wmts-menu"></div>' +
             '<div class="toolbar-menu" id="credits-menu"></div>';
         return div;
     },
@@ -453,27 +454,19 @@ var ToolbarControl = {
 map.addControl(ToolbarControl, "top-left");
 
 function closeAllMenus() {
-    ["basemap-menu", "grid-menu", "utm-menu", "credits-menu"].forEach(function (id) {
+    ["basemap-menu", "grid-menu", "utm-menu", "wmts-menu", "credits-menu"].forEach(function (id) {
         var m = document.getElementById(id);
         if (m) m.style.display = "none";
     });
 }
 
 function getCreditsHtml() {
-    var items = ['© <a href="https://carto.com/" target="_blank">CARTO</a>',
-                 '© <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>'];
-    var seen = [cartoAttribution];
-    var style = map.getStyle();
-    if (style && style.sources) {
-        for (var key in style.sources) {
-            var attr = style.sources[key].attribution;
-            if (attr && seen.indexOf(attr) < 0) {
-                seen.push(attr);
-                items.push(attr);
-            }
-        }
-    }
-    return items.join("<br>");
+    return '<div class="credits-section-label">Basemaps</div>' +
+        '© <a href="https://carto.com/" target="_blank">CARTO</a><br>' +
+        '© <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>' +
+        '<div class="credits-sep"></div>' +
+        '<div class="credits-section-label">Data</div>' +
+        'Compiled by <a href="https://nauticalcharts.noaa.gov/learn/nbs.html" target="_blank">NBS</a>';
 }
 
 function toggleCreditsMenu() {
@@ -572,18 +565,9 @@ function wmtsUrl(layer) {
         "&TILEMATRIXSET=EPSG:3857&TILEMATRIX=EPSG:3857:{z}&TILEROW={y}&TILECOL={x}";
 }
 
-function toggleWmtsOverlay() {
-    closeAllMenus();
+function setWmtsOverlay(on) {
     var btn = document.getElementById("toolbar-wmts");
-    if (wmtsOverlayActive) {
-        ["wmts-bathymetry", "wmts-hillshade"].forEach(function (id) {
-            if (map.getLayer(id)) map.removeLayer(id);
-            if (map.getSource(id)) map.removeSource(id);
-        });
-        wmtsOverlayActive = false;
-        btn.classList.remove("toolbar-active");
-    } else {
-        // Find first vector overlay to insert below
+    if (on && !wmtsOverlayActive) {
         var firstVector = null;
         var layers = map.getStyle().layers;
         for (var i = 0; i < layers.length; i++) {
@@ -592,14 +576,44 @@ function toggleWmtsOverlay() {
                 break;
             }
         }
-        // Hillshade below bathymetry, both below vector overlays
         map.addSource("wmts-hillshade", { type: "raster", tiles: [wmtsUrl("bluetopo:hillshade")], tileSize: 256, attribution: 'WMTS served by <a href="https://nowcoast.noaa.gov" target="_blank">nowCOAST</a>' });
         map.addLayer({ id: "wmts-hillshade", type: "raster", source: "wmts-hillshade", paint: { "raster-opacity": 1 } }, firstVector);
         map.addSource("wmts-bathymetry", { type: "raster", tiles: [wmtsUrl("bluetopo:bathymetry")], tileSize: 256 });
         map.addLayer({ id: "wmts-bathymetry", type: "raster", source: "wmts-bathymetry", paint: { "raster-opacity": 0.7 } }, firstVector);
         wmtsOverlayActive = true;
         btn.classList.add("toolbar-active");
+    } else if (!on && wmtsOverlayActive) {
+        ["wmts-bathymetry", "wmts-hillshade"].forEach(function (id) {
+            if (map.getLayer(id)) map.removeLayer(id);
+            if (map.getSource(id)) map.removeSource(id);
+        });
+        wmtsOverlayActive = false;
+        btn.classList.remove("toolbar-active");
     }
+}
+
+function toggleWmtsMenu() {
+    var menu = document.getElementById("wmts-menu");
+    var wasOpen = menu.style.display === "block";
+    closeAllMenus();
+    if (wasOpen) return;
+    menu.innerHTML = "";
+    var row = document.createElement("div");
+    row.className = "toolbar-menu-toggle";
+    row.innerHTML = '<span class="wmts-label' + (wmtsOverlayActive ? ' wmts-label-on' : '') + '" id="wmts-label">BlueTopo</span><span class="switch wmts-switch' + (wmtsOverlayActive ? ' on' : '') + '" id="wmts-switch"><span class="switch-knob"></span></span>';
+    row.onclick = function (e) {
+        e.stopPropagation();
+        setWmtsOverlay(!wmtsOverlayActive);
+        document.getElementById("wmts-switch").classList.toggle("on", wmtsOverlayActive);
+        document.getElementById("wmts-label").classList.toggle("wmts-label-on", wmtsOverlayActive);
+    };
+    menu.appendChild(row);
+    var sep = document.createElement("div"); sep.className = "toolbar-menu-sep"; menu.appendChild(sep);
+    var credit = document.createElement("div");
+    credit.className = "toolbar-menu-credits";
+    credit.innerHTML = '<div class="credits-section-label">WMTS</div>Served by <a href="https://nowcoast.noaa.gov" target="_blank">nowCOAST</a>';
+    menu.appendChild(credit);
+    menu.style.display = "block";
 }
 
 document.addEventListener("click", function (e) {
@@ -842,8 +856,7 @@ function getDirName(path) {
 function buildLegendHtml() {
     var html = "";
     if (remoteActive) {
-        html += "<div class='legend-section'>NBS Source</div>";
-        if (remoteSourceLabel) html += "<div class='legend-subtitle'>" + remoteSourceLabel + "</div>";
+        html += "<div class='legend-section'>" + (remoteSourceLabel || "NBS Source") + "</div>";
         var labels = ["< 1 day", "< 1 week", "< 1 month", "< 4 months", "< 12 months", "12+ months"];
         for (var i = 0; i < AGE_COLORS.length; i++) {
             var c = AGE_COLORS[i].color;
@@ -853,8 +866,7 @@ function buildLegendHtml() {
     }
     if (trackedActive) {
         if (html) html += "<div class='legend-divider'></div>";
-        html += "<div class='legend-section'>Your Project</div>";
-        if (trackedDirName) html += "<div class='legend-subtitle'>" + trackedDirName + "</div>";
+        html += "<div class='legend-section'>" + (trackedDirName || "Your Project") + "</div>";
         var cats = [["up_to_date", "Up to date"], ["updates_available", "Updates available"], ["missing_from_disk", "Missing from disk"], ["removed_from_scheme", "Removed from scheme"]];
         for (var j = 0; j < cats.length; j++) {
             html += "<div class='legend-row'><span class='legend-swatch' style='background:" + TRACKED_COLORS[cats[j][0]] + "'></span>" + cats[j][1] + "</div>";
