@@ -636,15 +636,55 @@ button:disabled {
 }
 
 .toast-welcome {
-    background: rgba(235, 232, 225, 0.55);
+    bottom: auto;
+    top: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(245, 243, 240, 0.7);
     backdrop-filter: blur(30px) saturate(1.5);
     -webkit-backdrop-filter: blur(30px) saturate(1.5);
     color: rgb(40, 40, 40);
+    font-size: 12px;
+    padding: 12px 18px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    white-space: normal;
+    max-width: 320px;
+    line-height: 1.4;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    text-align: left;
+    animation: slide-in-down 0.4s ease-out, slide-out-up 0.4s ease-in 5.6s forwards;
+}
+
+.welcome-icon {
+    font-size: 18px;
+    flex-shrink: 0;
+    line-height: 1;
+    margin-top: 1px;
+}
+
+.welcome-title {
+    font-weight: 600;
     font-size: 13px;
-    padding: 10px 24px;
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.15);
-    animation: toast-in 0.3s ease-out, toast-out 0.4s ease-in 5.6s forwards;
+    margin-bottom: 2px;
+}
+
+.welcome-body {
+    color: rgb(80, 80, 80);
+    font-size: 12px;
+}
+
+@keyframes slide-in-down {
+    from { opacity: 0; transform: translateX(-50%) translateY(-100%); }
+    to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+@keyframes slide-out-up {
+    from { opacity: 1; transform: translateX(-50%) translateY(0); }
+    to { opacity: 0; transform: translateX(-50%) translateY(-100%); }
 }
 
 @keyframes toast-in {

@@ -310,8 +310,14 @@ function showToast(msg, cls) {
     var container = document.getElementById("toast-container");
     var toast = document.createElement("div");
     toast.className = "toast" + (cls ? " " + cls : "");
-    toast.textContent = msg;
-    toast.style.bottom = getToastBottom() + "px";
+    if (cls === "toast-welcome" && typeof msg === "object") {
+        toast.innerHTML = '<span class="welcome-icon">' + msg.icon + '</span><div><div class="welcome-title">' + msg.title + '</div><div class="welcome-body">' + msg.body + '</div></div>';
+    } else {
+        toast.textContent = msg;
+    }
+    if (cls !== "toast-welcome") {
+        toast.style.bottom = getToastBottom() + "px";
+    }
     container.appendChild(toast);
     var duration = cls === "toast-welcome" ? 6000 : 4000;
     setTimeout(function () { toast.remove(); }, duration);

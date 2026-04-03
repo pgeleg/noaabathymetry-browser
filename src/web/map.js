@@ -1116,19 +1116,19 @@ function onLayersReady(data) {
             var total = data.total || 0;
             var issues = (updates > 0 ? 1 : 0) + (missing > 0 ? 1 : 0) + (removed > 0 ? 1 : 0);
             if (issues === 1 && updates > 0) {
-                showToast("Welcome back! " + updates + " of your tiles have updates available", "toast-welcome");
+                showToast({ icon: "⟳", title: "Updates Available", body: updates + " of your tiles have updates. Fetch to download them." }, "toast-welcome");
             } else if (issues === 1 && missing > 0) {
-                showToast("Welcome back! " + missing + " of your tiles " + (missing === 1 ? "is" : "are") + " missing from disk. Fetch to re-download " + (missing === 1 ? "it" : "them"), "toast-welcome");
+                showToast({ icon: "⚠", title: "Tiles Missing", body: missing + " of your tiles " + (missing === 1 ? "is" : "are") + " missing from disk. Fetch to re-download." }, "toast-welcome");
             } else if (issues === 1 && removed > 0) {
-                showToast("Welcome back! " + removed + " of your tiles " + (removed === 1 ? "was" : "were") + " removed from the NBS source", "toast-welcome");
+                showToast({ icon: "⚠", title: "Tiles Removed", body: removed + " of your tiles " + (removed === 1 ? "was" : "were") + " removed from the NBS source." }, "toast-welcome");
             } else if (issues > 1) {
                 var parts = [];
-                if (updates > 0) parts.push(updates + " update" + (updates !== 1 ? "s" : "") + " available");
-                if (missing > 0) parts.push(missing + " missing from disk");
-                if (removed > 0) parts.push(removed + " removed from the NBS source");
-                showToast("Welcome back! " + parts.join(", "), "toast-welcome");
+                if (updates > 0) parts.push(updates + " update" + (updates !== 1 ? "s" : ""));
+                if (missing > 0) parts.push(missing + " missing");
+                if (removed > 0) parts.push(removed + " removed");
+                showToast({ icon: "⚠", title: "Attention Needed", body: parts.join(", ") + ". Fetch to resolve." }, "toast-welcome");
             } else if (total > 0) {
-                showToast("Welcome back! All " + total + " of your tiles are up to date with the NBS", "toast-welcome");
+                showToast({ icon: "✓", title: "All Up to Date", body: "All " + total + " of your tiles are current with the NBS." }, "toast-welcome");
             }
         }
     }
