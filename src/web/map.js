@@ -272,6 +272,23 @@ function wouldSelfIntersect(points, newPoint) {
     return false;
 }
 
+function polygonSelfIntersects(points) {
+    // Check all edge pairs in a closed polygon
+    if (points.length < 3) return false;
+    var n = points.length;
+    for (var i = 0; i < n; i++) {
+        var a1 = points[i];
+        var a2 = points[(i + 1) % n];
+        for (var j = i + 2; j < n; j++) {
+            if (i === 0 && j === n - 1) continue; // adjacent (closing edge)
+            var b1 = points[j];
+            var b2 = points[(j + 1) % n];
+            if (segmentsIntersect(a1, a2, b1, b2)) return true;
+        }
+    }
+    return false;
+}
+
 map.on("click", function (e) {
     if (!drawingMode) return;
     var pt = [e.lngLat.lng, e.lngLat.lat];
@@ -292,6 +309,85 @@ map.on("dblclick", function (e) {
         return;
     }
     finishDrawing();
+});
+
+// ── Vertex editing (drag to move) ─────────────────────
+
+var draggingVertex = -1;
+var dragOriginalPos = null;
+var VERTEX_HIT_PX = 20;
+
+function nearestVertex(point) {
+    var best = -1;
+    var bestDist = VERTEX_HIT_PX * VERTEX_HIT_PX;
+    for (var i = 0; i < drawPoints.length; i++) {
+        var screen = map.project(drawPoints[i]);
+        var dx = screen.x - point.x;
+        var dy = screen.y - point.y;
+        var dist = dx * dx + dy * dy;
+        if (dist < bestDist) {
+            bestDist = dist;
+            best = i;
+        }
+    }
+    return best;
+}
+
+map.on("mousedown", function (e) {
+    if (drawingMode || rectMode || drawPoints.length < 3) return;
+    var idx = nearestVertex(e.point);
+    if (idx < 0) return;
+    draggingVertex = idx;
+    dragOriginalPos = drawPoints[idx].slice();
+    map.dragPan.disable();
+    map.getCanvas().style.setProperty("cursor", "grabbing", "important");
+    e.preventDefault();
+});
+
+map.on("mousemove", function (e) {
+    if (draggingVertex < 0) return;
+    var newPos = [e.lngLat.lng, e.lngLat.lat];
+    var oldPos = drawPoints[draggingVertex];
+    drawPoints[draggingVertex] = newPos;
+    if (polygonSelfIntersects(drawPoints)) {
+        drawPoints[draggingVertex] = oldPos;
+        return;
+    }
+    updateDrawLayer();
+    if (drawPoints.length >= 3) {
+        var coords = drawPoints.slice();
+        coords.push(coords[0]);
+        var geom = { type: "Polygon", coordinates: [coords] };
+        currentGeometry = JSON.stringify(geom);
+        document.getElementById("opt-geometry").value = currentGeometry;
+    }
+});
+
+map.on("mouseup", function (e) {
+    if (draggingVertex < 0) return;
+    draggingVertex = -1;
+    map.dragPan.enable();
+    map.getCanvas().style.setProperty("cursor", "", "");
+    // Update geometry input
+    if (drawPoints.length >= 3) {
+        var coords = drawPoints.slice();
+        coords.push(coords[0]);
+        var geom = { type: "Polygon", coordinates: [coords] };
+        currentGeometry = JSON.stringify(geom);
+        var input = document.getElementById("opt-geometry");
+        input.value = currentGeometry;
+        input.scrollLeft = input.scrollWidth;
+    }
+});
+
+// Show grab cursor on vertex hover
+map.on("mousemove", function (e) {
+    if (drawingMode || rectMode || draggingVertex >= 0 || drawPoints.length < 3) return;
+    if (nearestVertex(e.point) >= 0) {
+        map.getCanvas().style.setProperty("cursor", "grab", "important");
+    } else {
+        map.getCanvas().style.setProperty("cursor", "", "");
+    }
 });
 
 // ── Cursor coordinates ───────────────────────────────
@@ -622,17 +718,22 @@ document.addEventListener("click", function (e) {
 
 // ── Layer toggle control ─────────────────────────────
 
-var layerDiv = document.createElement("div");
-layerDiv.className = "map-layer-control";
-layerDiv.innerHTML =
-    '<button id="btn-layer-remote" class="layer-toggle" onclick="toggleRemoteLayer()" title="What\'s available on NBS?">' +
+var layersPanel = document.createElement("div");
+layersPanel.className = "layers-panel";
+layersPanel.innerHTML =
+    '<div id="layers-legend"></div>' +
+    '<div class="layers-card">' +
+    '<div class="layers-title">Layers</div>' +
+    '<div class="layers-row">' +
+    '<button id="btn-layer-remote" class="layers-btn" onclick="toggleRemoteLayer()" title="What\'s available on NBS?">' +
     '<span class="layer-dot remote"></span>NBS Source</button>' +
-    '<button id="btn-layer-tracked" class="layer-toggle" onclick="toggleTrackedLayer()" title="What\'s the status of your tiles?">' +
+    '<button id="btn-layer-tracked" class="layers-btn" onclick="toggleTrackedLayer()" title="What\'s the status of your tiles?">' +
     '<span class="layer-dot tracked"></span>Your Project</button>' +
-    '<button id="btn-layer-fill" class="layer-toggle layer-on" onclick="toggleFill()" title="Toggle fill">' +
-    '<span class="fill-icon"></span>Fill</button>';
-layerDiv.appendChild(coordDiv);
-document.getElementById("map").appendChild(layerDiv);
+    '<button id="btn-layer-fill" class="layers-btn layer-on" onclick="toggleFill()" title="Toggle fill">' +
+    '<span class="fill-icon"></span>Fill</button>' +
+    '</div></div>';
+layersPanel.appendChild(coordDiv);
+document.getElementById("map").appendChild(layersPanel);
 
 // ── Tile scheme layers ───────────────────────────────
 
@@ -860,7 +961,8 @@ function getDirName(path) {
 function buildLegendHtml() {
     var html = "";
     if (remoteActive) {
-        html += "<div class='legend-section'>" + escapeHtml(remoteSourceLabel || "NBS Source") + "</div>";
+        html += "<div class='legend-section'>NBS " + escapeHtml(remoteSourceLabel || "Source") + "</div>";
+        html += "<div class='legend-subtitle'>Last Delivered</div>";
         var labels = ["< 1 day", "< 1 week", "< 1 month", "< 4 months", "< 12 months", "12+ months"];
         for (var i = 0; i < AGE_COLORS.length; i++) {
             var c = AGE_COLORS[i].color;
@@ -880,12 +982,13 @@ function buildLegendHtml() {
 }
 
 function updateLegend() {
-    if (legendDiv) { legendDiv.remove(); legendDiv = null; }
-    if (!remoteActive && !trackedActive) return;
+    var container = document.getElementById("layers-legend");
+    container.innerHTML = "";
+    if (!remoteActive && !trackedActive) { legendDiv = null; return; }
     legendDiv = document.createElement("div");
     legendDiv.className = "map-legend";
     legendDiv.innerHTML = buildLegendHtml();
-    document.getElementById("map").appendChild(legendDiv);
+    container.appendChild(legendDiv);
 }
 
 // ── Layer state ──────────────────────────────────────

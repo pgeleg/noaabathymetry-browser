@@ -12,8 +12,8 @@ def make_icon_frame(logo, size):
     draw = ImageDraw.Draw(frame)
     text = "NBS"
 
-    font_size = max(int(size * 0.22), 10)
-    spacing = size * 0.035
+    font_size = max(int(size * 0.28), 12)
+    spacing = size * 0.04
 
     for name in ["arialbd.ttf", "arial.ttf",
                   "/System/Library/Fonts/Helvetica.ttc"]:
@@ -53,7 +53,7 @@ def make_icon_frame(logo, size):
 
 
 def main():
-    logo = Image.open("assets/NOAA-1.png").convert("RGBA")
+    logo = Image.open("assets/NOAA-2.png").convert("RGBA")
     fmt = sys.argv[1] if len(sys.argv) > 1 else "ico"
 
     if fmt == "ico":
