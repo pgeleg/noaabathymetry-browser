@@ -292,20 +292,6 @@ function switchView(view) {
     }
 }
 
-function getToastBottom() {
-    var base = 10;
-    var els = ["command-area", "log-header"];
-    els.forEach(function (id) {
-        var el = document.getElementById(id);
-        if (el) base += el.offsetHeight;
-    });
-    if (logOpen) {
-        var logPane = document.getElementById("log-pane");
-        if (logPane) base += logPane.offsetHeight;
-    }
-    return base;
-}
-
 function showToast(msg, cls) {
     var container = document.getElementById("toast-container");
     var toast = document.createElement("div");
@@ -315,10 +301,7 @@ function showToast(msg, cls) {
     } else {
         toast.textContent = msg;
     }
-    if (cls !== "toast-welcome") {
-        toast.style.bottom = getToastBottom() + "px";
-    }
-    container.appendChild(toast);
+    container.insertBefore(toast, container.firstChild);
     var duration = cls === "toast-welcome" ? 6000 : 4000;
     setTimeout(function () { toast.remove(); }, duration);
 }
@@ -398,7 +381,13 @@ function onCommandDone(data) {
     try {
         if (data.ok) {
             setStatus("Complete");
-            showToast("Complete");
+            if (wasCommand === "fetch") {
+                showToast("Fetch complete");
+            } else if (wasCommand === "mosaic") {
+                showToast("Mosaic complete");
+            } else {
+                showToast("Complete");
+            }
             fetched = data.result && data.result.downloaded && data.result.downloaded.length > 0;
         } else {
             appendLog("Error: " + data.error);

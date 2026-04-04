@@ -614,32 +614,35 @@ button:disabled {
 
 /* ── Toast notification ──────────────────────────── */
 
-.toast {
+#toast-container {
     position: fixed;
-    bottom: 120px;
+    top: 52px;
     left: 50%;
     transform: translateX(-50%);
-    background: var(--map-overlay-bg-solid);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    color: var(--map-overlay-fg);
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    pointer-events: none;
+}
+
+.toast {
+    background: rgba(245, 243, 240, 0.7);
+    backdrop-filter: blur(30px) saturate(1.5);
+    -webkit-backdrop-filter: blur(30px) saturate(1.5);
+    color: rgb(80, 80, 80);
     padding: 8px 20px;
     border-radius: 20px;
     font-size: 12px;
     font-family: var(--font-ui);
     white-space: nowrap;
-    z-index: 10000;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5), 0 0 0 1px var(--map-overlay-border);
     border: none;
-    animation: toast-in 0.3s ease-out, toast-out 0.4s ease-in 3.6s forwards;
-    pointer-events: none;
+    animation: slide-in-down 0.4s ease-out, slide-out-up 0.4s ease-in 3.6s forwards;
 }
 
 .toast-welcome {
-    bottom: auto;
-    top: 60px;
-    left: 50%;
-    transform: translateX(-50%);
     background: rgba(245, 243, 240, 0.7);
     backdrop-filter: blur(30px) saturate(1.5);
     -webkit-backdrop-filter: blur(30px) saturate(1.5);
@@ -678,24 +681,15 @@ button:disabled {
 }
 
 @keyframes slide-in-down {
-    from { opacity: 0; transform: translateX(-50%) translateY(-100%); }
-    to { opacity: 1; transform: translateX(-50%) translateY(0); }
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes slide-out-up {
-    from { opacity: 1; transform: translateX(-50%) translateY(0); }
-    to { opacity: 0; transform: translateX(-50%) translateY(-100%); }
+    from { opacity: 1; transform: translateY(0); }
+    to { opacity: 0; transform: translateY(-20px); }
 }
 
-@keyframes toast-in {
-    from { opacity: 0; transform: translateX(-50%) translateY(8px); }
-    to { opacity: 1; transform: translateX(-50%) translateY(0); }
-}
-
-@keyframes toast-out {
-    from { opacity: 1; }
-    to { opacity: 0; }
-}
 
 .toolbar-menu-credits {
     padding: 8px 12px;
