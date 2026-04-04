@@ -22,6 +22,7 @@ def create_app(token):
     app["web_dir"] = web_dir
 
     app.router.add_get("/", index_handler)
+    app.router.add_get("/reopen", reopen_handler)
     app.router.add_get("/ws", websocket_handler)
     app.router.add_static("/static", web_dir)
 
@@ -47,6 +48,15 @@ async def index_handler(request):
         return web.Response(status=403, text="Forbidden")
     path = os.path.join(request.app["web_dir"], "index.html")
     return web.FileResponse(path)
+
+
+async def reopen_handler(request):
+    """Unauthenticated endpoint — confirms the server is alive.
+
+    Only reachable from localhost (server binds to 127.0.0.1).
+    The caller (duplicate launch) shows a message box after receiving 200.
+    """
+    return web.Response(text="OK")
 
 
 async def websocket_handler(request):

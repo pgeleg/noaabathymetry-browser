@@ -8,11 +8,8 @@ import sys
 import tempfile
 import webbrowser
 
-from aiohttp import web
-
-from src.server import create_app
-
-_LOCK_FILE = os.path.join(tempfile.gettempdir(), "nbs_bathymetry.lock")
+_LOCK_FILE = os.path.join(tempfile.gettempdir(), "noaabathymetry.lock")
+_PORT_FILE = os.path.join(tempfile.gettempdir(), "noaabathymetry.session")
 _lock_fh = None
 
 
@@ -81,24 +78,73 @@ def _setup_ssl():
         pass
 
 
+def _close_splash():
+    try:
+        import pyi_splash
+        pyi_splash.close()
+    except ImportError:
+        pass
+
+
+def _try_reopen_existing():
+    """If another instance is running, show a message and return True."""
+    try:
+        with open(_PORT_FILE, "r") as f:
+            port = int(f.read().strip())
+        if not port:
+            return False
+        import urllib.request
+        resp = urllib.request.urlopen(f"http://127.0.0.1:{port}/reopen", timeout=3)
+        if resp.status == 200:
+            _close_splash()
+            if sys.platform == "win32":
+                import ctypes
+                ctypes.windll.user32.MessageBoxW(
+                    0, "National Bathymetric Source is already running.\nCheck your browser tabs.",
+                    "Already Running", 0x40)
+            return True
+        return False
+    except Exception:
+        return False
+
+
 def main():
+    if _try_reopen_existing():
+        _close_splash()
+        sys.exit(0)
+
     multiprocessing.freeze_support()
 
     try:
         if not _acquire_lock():
+            # Lock held by another instance — try reopen, then exit
+            _try_reopen_existing()
+            _close_splash()
             sys.exit(0)
     except Exception:
+        _close_splash()
         sys.exit(0)  # Lock failed — don't risk a duplicate instance
 
     _setup_ssl()
+
+    from aiohttp import web
+    from src.server import create_app
+
     sock = _bind_socket()
     assert sock.getsockname()[0] == "127.0.0.1", "Server must bind to localhost only"
     port = sock.getsockname()[1]
+    # Write port to separate file so duplicate launches can signal us
+    try:
+        with open(_PORT_FILE, "w") as pf:
+            pf.write(str(port))
+    except OSError:
+        pass
     token = secrets.token_urlsafe(32)
     app = create_app(token)
 
     async def on_startup(app):
         webbrowser.open(f"http://127.0.0.1:{port}?token={token}")
+        _close_splash()
 
     app.on_startup.append(on_startup)
     web.run_app(app, sock=sock, print=None)
