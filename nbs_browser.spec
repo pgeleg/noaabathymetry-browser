@@ -139,16 +139,16 @@ if is_win:
         _cx += _draw.textbbox((0, 0), c, font=_font)[2] + _spacing
     # "Starting..." label
     try:
-        _font_sm = _ImageFont.truetype("arial.ttf", 9)
+        _font_sm = _ImageFont.truetype("arial.ttf", 10)
     except (IOError, OSError):
         try:
-            _font_sm = _ImageFont.truetype("/System/Library/Fonts/Helvetica.ttc", 9)
+            _font_sm = _ImageFont.truetype("/System/Library/Fonts/Helvetica.ttc", 10)
         except (IOError, OSError):
             _font_sm = _ImageFont.load_default()
     _start_text = "STARTING..."
     _start_spacing = 1.5
     _stw = sum(_draw.textbbox((0, 0), c, font=_font_sm)[2] + _start_spacing for c in _start_text) - _start_spacing
-    _stx = (_bg.width - _stw) / 2
+    _stx = (_bg.width - _stw) / 2 + 1
     _scx = _stx
     for c in _start_text:
         _draw.text((_scx, 265), c, fill=(70, 90, 115), font=_font_sm)
