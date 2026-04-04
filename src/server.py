@@ -100,7 +100,7 @@ async def websocket_handler(request):
         request.app["ws"] = None
         request.app["bridge"] = None
         # Start grace period — shut down if no reconnection
-        _shutdown_handle = loop.call_later(5, _shutdown)
+        _shutdown_handle = loop.call_later(1.5, _shutdown)
 
     return ws
 
@@ -108,7 +108,7 @@ async def websocket_handler(request):
 def _shutdown():
     """Attempt graceful shutdown, force-kill after 3 seconds."""
     import threading
-    threading.Timer(3, lambda: os._exit(0)).start()
+    threading.Timer(1.5, lambda: os._exit(0)).start()
     raise SystemExit(0)
 
 
