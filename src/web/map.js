@@ -831,11 +831,11 @@ function readdAllSources() {
     map.addLayer({ id: "draw-line", type: "line", source: "draw-polygon", paint: { "line-color": "rgba(100,140,255,0.8)", "line-width": 2, "line-dasharray": [3, 2] } });
     map.addLayer({ id: "draw-vertices", type: "circle", source: "draw-points", paint: { "circle-radius": 4, "circle-color": "rgba(100,140,255,1)", "circle-stroke-color": "white", "circle-stroke-width": 1.5 } });
 
-    if (remoteActive && remoteCache.data && !remoteLoading) {
-        addRemoteToMap(remoteCache.data);
+    if (remoteActive && remoteDisplayData && !remoteLoading) {
+        addRemoteToMap(remoteDisplayData);
     }
-    if (trackedActive && trackedCache.data && !trackedLoading) {
-        addTrackedToMap(trackedCache.data);
+    if (trackedActive && trackedDisplayData && !trackedLoading) {
+        addTrackedToMap(trackedDisplayData);
     }
     if (wmtsOverlayActive) {
         wmtsOverlayActive = false;
@@ -888,7 +888,7 @@ function updateLegend() {
     document.getElementById("map").appendChild(legendDiv);
 }
 
-// ── Layer state & caching ────────────────────────────
+// ── Layer state ──────────────────────────────────────
 
 var remoteActive = false;
 var remoteRequestedSource = null;
@@ -897,12 +897,8 @@ var trackedRequestedDir = null;
 var remoteLoading = false;
 var trackedLoading = false;
 
-var remoteCache = { source: null, data: null, time: 0 };
-var REMOTE_CACHE_MS = 60000;
-
-var trackedCache = { dir: null, source: null, data: null, time: 0 };
-var TRACKED_CACHE_MS = 60000;
-var trackedSkipCache = false;
+var remoteDisplayData = null;
+var trackedDisplayData = null;
 var trackedIsReload = false;
 var trackedStartup = false;
 
@@ -911,9 +907,9 @@ function clearTrackedOnly() {
     if (trackedActive || trackedLoading) {
         trackedActive = false;
         trackedLoading = false;
-        trackedSkipCache = false;
         trackedIsReload = false;
         trackedStartup = false;
+        trackedDisplayData = null;
         removeTrackedFromMap();
         var tb = document.getElementById("btn-layer-tracked");
         tb.classList.remove("layer-on", "layer-loading");
@@ -926,7 +922,6 @@ function refreshTracked() {
     var wasLoading = trackedLoading;
     var wasActive = clearTrackedOnly();
     if (wasActive && !currentCommand && !wasLoading) {
-        trackedSkipCache = true;
         toggleTrackedLayer();
     }
 }
@@ -935,6 +930,7 @@ function clearAllLayers() {
     if (remoteActive || remoteLoading) {
         remoteActive = false;
         remoteLoading = false;
+        remoteDisplayData = null;
         removeRemoteFromMap();
         var rb = document.getElementById("btn-layer-remote");
         rb.classList.remove("layer-on", "layer-loading");
@@ -949,7 +945,6 @@ function refreshAllLayers() {
     clearAllLayers();
     if (wasRemote) toggleRemoteLayer();
     if (wasTracked && !currentCommand && !wasTrackedLoading) {
-        trackedSkipCache = true;
         toggleTrackedLayer();
     }
 }
@@ -965,21 +960,12 @@ function toggleRemoteLayer() {
     } else {
         if (!bridge) return;
         var source = document.getElementById("data-source").value;
-        if (remoteCache.source === source && remoteCache.data && (Date.now() - remoteCache.time) < REMOTE_CACHE_MS) {
-            remoteActive = true;
-            remoteSourceLabel = document.getElementById("source-label").textContent;
-            btn.classList.add("layer-on");
-            addRemoteToMap(remoteCache.data);
-            updateLegend();
-            return;
-        }
         remoteActive = true;
         remoteLoading = true;
         remoteRequestedSource = source;
         remoteSourceLabel = document.getElementById("source-label").textContent;
         btn.classList.add("layer-on");
         btn.classList.add("layer-loading");
-        showToast("Pulling " + remoteSourceLabel + " NBS Source...");
         bridge.load_remote_layer(source);
     }
 }
@@ -998,16 +984,6 @@ function toggleTrackedLayer() {
         var dir = document.getElementById("project-dir").value;
         if (!dir) return;
         var source = document.getElementById("data-source").value;
-        if (!trackedSkipCache && trackedCache.dir === dir && trackedCache.source === source
-            && trackedCache.data && (Date.now() - trackedCache.time) < TRACKED_CACHE_MS) {
-            trackedActive = true;
-            trackedDirName = getDirName(dir);
-            btn.classList.add("layer-on");
-            addTrackedToMap(trackedCache.data);
-            updateLegend();
-            return;
-        }
-        trackedSkipCache = false;
         trackedActive = true;
         trackedLoading = true;
         trackedRequestedDir = dir;
@@ -1067,12 +1043,11 @@ function onLayersReady(data) {
             return;
         }
         colorFeatures(data.data);
-        remoteCache.source = document.getElementById("data-source").value;
-        remoteCache.data = data.data;
-        remoteCache.time = Date.now();
+        var firstDisplay = !remoteDisplayData;
+        remoteDisplayData = data.data;
         addRemoteToMap(data.data);
         updateLegend();
-        if (!data.cached) fitToGeojson(data.data);
+        if (firstDisplay) fitToGeojson(data.data);
     } else if (data.layer === "tracked") {
         trackedLoading = false;
         var btn = document.getElementById("btn-layer-tracked");
@@ -1092,10 +1067,7 @@ function onLayersReady(data) {
             }
             return;
         }
-        trackedCache.dir = document.getElementById("project-dir").value;
-        trackedCache.source = document.getElementById("data-source").value;
-        trackedCache.data = data.data;
-        trackedCache.time = Date.now();
+        trackedDisplayData = data.data;
         addTrackedToMap(data.data);
         updateLegend();
         if (!trackedIsReload) {

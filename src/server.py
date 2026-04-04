@@ -126,6 +126,7 @@ _SYNC_METHODS = {
 _ASYNC_METHODS = {
     "fetch": {"project_dir", "geometry", "data_source", "resolution_filter"},
     "mosaic": {"project_dir", "data_source", "options_json"},
+    "prewarm_scheme": {"data_source"},
     "load_remote_layer": {"data_source"},
     "load_tracked_layer": {"project_dir", "data_source"},
 }

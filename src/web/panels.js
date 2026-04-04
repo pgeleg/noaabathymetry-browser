@@ -2,6 +2,7 @@
 // bridge object is provided by bridge-ws.js
 
 function _onBridgeReady() {
+    bridge.prewarm_scheme(document.getElementById("data-source").value);
     bridge.get_cpu_count(function (count) {
         document.getElementById("opt-workers").max = Math.max(1, Math.floor(count / 2));
         document.getElementById("opt-workers").placeholder = "1";
@@ -17,7 +18,6 @@ function _onBridgeReady() {
             setSource(source);
             var basemap = recent.basemap;
             if (basemap) setBasemapByName(basemap);
-            trackedSkipCache = true;
             trackedStartup = true;
             toggleTrackedLayer();
         }
@@ -416,7 +416,6 @@ function onCommandDone(data) {
             reloadTrackedLayer();
         } else {
             trackedIsReload = true;
-            trackedSkipCache = true;
             toggleTrackedLayer();
         }
     }

@@ -76,6 +76,7 @@ var bridge = {
     load_tracked_layer: function (dir, source) { this._call("load_tracked_layer", { project_dir: dir, data_source: source }); },
     get_cpu_count: function (cb) { this._call("get_cpu_count", {}, cb); },
     remove_recent: function (path) { this._call("remove_recent", { path: path }); },
+    prewarm_scheme: function (source) { this._call("prewarm_scheme", { data_source: source }); },
 };
 
 _connect();
