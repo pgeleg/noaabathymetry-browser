@@ -7,13 +7,13 @@ Log output is streamed to the browser in real-time.
 import dataclasses
 import hashlib
 import io
-import uuid
 import json
 import logging
 import os
 import sys
 import threading
 import time
+import uuid
 from pathlib import Path
 
 from osgeo import gdal
@@ -114,7 +114,6 @@ def _add_recent(path, data_source=None):
                if not (os.path.normpath(r["path"]) == path and r.get("source") == source)]
     recents.insert(0, {"path": path, "source": source})
     _save_recents(recents[:_MAX_RECENTS])
-
 
 
 class _SchemeCacheEntry:
