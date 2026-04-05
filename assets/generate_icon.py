@@ -4,8 +4,13 @@ import sys
 from PIL import Image, ImageDraw, ImageFont
 
 
-def make_icon_frame(logo, size):
-    frame = logo.resize((size, size), Image.LANCZOS)
+def make_icon_frame(logo, size, fill_bg=False):
+    scaled = logo.resize((size, size), Image.LANCZOS)
+    if fill_bg:
+        frame = Image.new("RGBA", (size, size), (10, 25, 50, 255))
+        frame.paste(scaled, (0, 0), mask=scaled)
+    else:
+        frame = scaled
     if size < 48:
         return frame
 
@@ -31,12 +36,13 @@ def make_icon_frame(logo, size):
     ty = size * 0.68
 
     padding_x = size * 0.06
-    padding_y = size * 0.03
+    padding_y = max(size * 0.03, 5)
     bbox = draw.textbbox((0, 0), text, font=font)
-    th = bbox[3] - bbox[1]
+    text_top = ty + bbox[1]
+    text_bottom = ty + bbox[3]
     draw.rounded_rectangle(
-        [tx - padding_x, ty - padding_y,
-         tx + tw + padding_x, ty + th + padding_y],
+        [tx - padding_x, text_top - padding_y,
+         tx + tw + padding_x, text_bottom + padding_y],
         radius=int(size * 0.04),
         fill=(18, 40, 70, 220),
     )
@@ -58,19 +64,34 @@ def main():
 
     if fmt == "ico":
         sizes = [16, 32, 48, 64, 128, 256]
-        frames = [make_icon_frame(logo, s).convert("RGBA") for s in sizes]
-        # Pillow ICO: pass the largest frame and specify all sizes
-        frames[-1].save("assets/NOAA.ico", format="ICO",
-                        sizes=[(s, s) for s in sizes])
+        frame = make_icon_frame(logo, sizes[-1]).convert("RGBA")
+        frame.save("assets/NOAA.ico", format="ICO",
+                   sizes=[(s, s) for s in sizes])
         print("Generated assets/NOAA.ico")
 
     elif fmt == "iconset":
         import os
+        import subprocess
         os.makedirs("assets/NOAA.iconset", exist_ok=True)
-        for size in [16, 32, 64, 128, 256, 512]:
-            frame = make_icon_frame(logo, size)
-            frame.save(f"assets/NOAA.iconset/icon_{size}x{size}.png")
-        print("Generated assets/NOAA.iconset/")
+        # macOS requires @2x variants for Retina displays
+        specs = [
+            (16, "icon_16x16.png"),
+            (32, "icon_16x16@2x.png"),
+            (32, "icon_32x32.png"),
+            (64, "icon_32x32@2x.png"),
+            (128, "icon_128x128.png"),
+            (256, "icon_128x128@2x.png"),
+            (256, "icon_256x256.png"),
+            (512, "icon_256x256@2x.png"),
+            (512, "icon_512x512.png"),
+            (1024, "icon_512x512@2x.png"),
+        ]
+        for size, name in specs:
+            frame = make_icon_frame(logo, size, fill_bg=True)
+            frame.save(f"assets/NOAA.iconset/{name}")
+        subprocess.run(["iconutil", "-c", "icns", "assets/NOAA.iconset",
+                         "-o", "assets/NOAA.icns"], check=True)
+        print("Generated assets/NOAA.icns")
 
 
 if __name__ == "__main__":

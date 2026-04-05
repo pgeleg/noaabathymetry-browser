@@ -59,12 +59,6 @@ jobs:
         run: |
           pip install pillow==12.2.0
           python assets/generate_icon.py iconset
-          cp assets/NOAA.iconset/icon_32x32.png assets/NOAA.iconset/icon_16x16@2x.png
-          cp assets/NOAA.iconset/icon_64x64.png assets/NOAA.iconset/icon_32x32@2x.png
-          cp assets/NOAA.iconset/icon_256x256.png assets/NOAA.iconset/icon_128x128@2x.png
-          cp assets/NOAA.iconset/icon_512x512.png assets/NOAA.iconset/icon_256x256@2x.png
-          iconutil -c icns assets/NOAA.iconset
-          rm -rf assets/NOAA.iconset
 
       - name: Build with PyInstaller
         run: pyinstaller nbs_browser.spec
