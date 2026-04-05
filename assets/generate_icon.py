@@ -28,7 +28,7 @@ def make_icon_frame(logo, size):
     tw = sum(draw.textbbox((0, 0), c, font=font)[2] + spacing
              for c in text) - spacing
     tx = (size - tw) / 2
-    ty = size * 0.78
+    ty = size * 0.68
 
     padding_x = size * 0.06
     padding_y = size * 0.03
