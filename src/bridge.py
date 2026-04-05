@@ -427,6 +427,27 @@ class Bridge:
         except OSError:
             return json.dumps([])
 
+    def wms_query(self, lat, lng):
+        import urllib.request
+        try:
+            size = 256
+            delta = 0.01
+            bbox = f"{lng - delta},{lat - delta},{lng + delta},{lat + delta}"
+            x = y = size // 2
+            base = (f"https://nowcoast.noaa.gov/geoserver/bluetopo/wms?"
+                    f"SERVICE=WMS&VERSION=1.1.1&REQUEST=GetFeatureInfo"
+                    f"&INFO_FORMAT=application/json&SRS=EPSG:4326"
+                    f"&WIDTH={size}&HEIGHT={size}&BBOX={bbox}&X={x}&Y={y}")
+            bathy_url = base + "&LAYERS=bluetopo:bathymetry&QUERY_LAYERS=bluetopo:bathymetry&STYLES=source_survey_id"
+            tile_url = base + "&LAYERS=bluetopo:bluetopo_tile_scheme&QUERY_LAYERS=bluetopo:bluetopo_tile_scheme"
+            bathy_data = json.loads(urllib.request.urlopen(bathy_url, timeout=5).read())
+            tile_data = json.loads(urllib.request.urlopen(tile_url, timeout=5).read())
+            bathy = bathy_data["features"][0]["properties"] if bathy_data.get("features") else None
+            tile = tile_data["features"][0]["properties"] if tile_data.get("features") else None
+            return {"bathy": bathy, "tile": tile}
+        except Exception:
+            return None
+
     def open_folder(self, path):
         path = os.path.expanduser(path)
         if not os.path.isdir(path):

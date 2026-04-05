@@ -78,6 +78,7 @@ var bridge = {
     remove_recent: function (path) { this._call("remove_recent", { path: path }); },
     prewarm_scheme: function (source) { this._call("prewarm_scheme", { data_source: source }); },
     open_folder: function (path, cb) { this._call("open_folder", { path: path }, cb); },
+    wms_query: function (lat, lng, cb) { this._call("wms_query", { lat: lat, lng: lng }, cb); },
 };
 
 _connect();

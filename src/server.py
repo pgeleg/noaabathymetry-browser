@@ -129,6 +129,7 @@ _SYNC_METHODS = {
     "browse_directory": set(),
     "browse_geometry": set(),
     "open_folder": {"path"},
+    "wms_query": {"lat", "lng"},
     "complete_path": {"partial"},
     "save_basemap": {"basemap_name"},
     "remove_recent": {"path"},

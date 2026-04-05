@@ -578,6 +578,7 @@ function toggleBasemapMenu() {
     closeAllMenus();
     if (wasOpen) return;
     menu.innerHTML = "";
+    var header = document.createElement("div"); header.className = "toolbar-menu-header"; header.textContent = "BASEMAP"; menu.appendChild(header);
     basemapNames.forEach(function (name, i) {
         var item = document.createElement("div");
         item.className = "toolbar-menu-item" + (i === basemapIndex ? " active" : "");
@@ -597,6 +598,7 @@ function toggleGridMenu() {
     closeAllMenus();
     if (wasOpen) return;
     menu.innerHTML = "";
+    var header = document.createElement("div"); header.className = "toolbar-menu-header"; header.textContent = "LAT/LON GRID"; menu.appendChild(header);
     gridColors.forEach(function (c, i) {
         var item = document.createElement("div");
         item.className = "toolbar-menu-item" + (gridVisible && i === gridColorIndex ? " active" : "");
@@ -625,6 +627,7 @@ function toggleUtmMenu() {
     closeAllMenus();
     if (wasOpen) return;
     menu.innerHTML = "";
+    var header = document.createElement("div"); header.className = "toolbar-menu-header"; header.textContent = "UTM GRID"; menu.appendChild(header);
     utmColors.forEach(function (c, i) {
         var item = document.createElement("div");
         item.className = "toolbar-menu-item" + (utmVisible && i === utmColorIndex ? " active" : "");
@@ -670,7 +673,7 @@ function setWmtsOverlay(on) {
                 break;
             }
         }
-        map.addSource("wmts-hillshade", { type: "raster", tiles: [wmtsUrl("bluetopo:hillshade")], tileSize: 256, attribution: 'WMTS served by <a href="https://nowcoast.noaa.gov" target="_blank">nowCOAST</a>' });
+        map.addSource("wmts-hillshade", { type: "raster", tiles: [wmtsUrl("bluetopo:hillshade")], tileSize: 256, attribution: 'WMTS served by <a href="https://nauticalcharts.noaa.gov/learn/nowcoast.html" target="_blank">nowCOAST</a>' });
         map.addLayer({ id: "wmts-hillshade", type: "raster", source: "wmts-hillshade", paint: { "raster-opacity": 1 } }, firstVector);
         map.addSource("wmts-bathymetry", { type: "raster", tiles: [wmtsUrl("bluetopo:bathymetry")], tileSize: 256 });
         map.addLayer({ id: "wmts-bathymetry", type: "raster", source: "wmts-bathymetry", paint: { "raster-opacity": 0.7 } }, firstVector);
@@ -705,7 +708,7 @@ function toggleWmtsMenu() {
     var sep = document.createElement("div"); sep.className = "toolbar-menu-sep"; menu.appendChild(sep);
     var credit = document.createElement("div");
     credit.className = "toolbar-menu-credits";
-    credit.innerHTML = '<div class="credits-section-label">WMTS</div>Served by <a href="https://nowcoast.noaa.gov" target="_blank">nowCOAST</a>';
+    credit.innerHTML = '<div class="credits-section-label">WMTS</div>Served by <a href="https://nauticalcharts.noaa.gov/learn/nowcoast.html" target="_blank">nowCOAST</a>';
     menu.appendChild(credit);
     menu.style.display = "block";
 }
@@ -914,6 +917,107 @@ map.on("click", function (e) {
     delete props._color;
     var html = buildPopupHtml(props);
     if (html) popup.setLngLat(e.lngLat).setHTML(html).addTo(map);
+});
+
+// ── WMS query panel (BlueTopo data) ──────────────────
+
+var wmsPanel = document.createElement("div");
+wmsPanel.className = "wms-panel";
+wmsPanel.style.display = "none";
+document.getElementById("map").appendChild(wmsPanel);
+var wmsQueryId = 0;
+
+function queryWmsPoint(lngLat) {
+    if (!wmtsOverlayActive) return;
+    var size = 256;
+    var delta = 0.01;
+    var bbox = (lngLat.lng - delta) + "," + (lngLat.lat - delta) + "," + (lngLat.lng + delta) + "," + (lngLat.lat + delta);
+    var x = Math.round(size / 2);
+    var y = Math.round(size / 2);
+    var baseParams = "SERVICE=WMS&VERSION=1.1.1&REQUEST=GetFeatureInfo" +
+        "&INFO_FORMAT=application/json&SRS=EPSG:4326" +
+        "&WIDTH=" + size + "&HEIGHT=" + size +
+        "&BBOX=" + bbox + "&X=" + x + "&Y=" + y;
+    var bathyUrl = "https://nowcoast.noaa.gov/geoserver/bluetopo/wms?" + baseParams +
+        "&LAYERS=bluetopo:bathymetry&QUERY_LAYERS=bluetopo:bathymetry&STYLES=source_survey_id";
+    var tileUrl = "https://nowcoast.noaa.gov/geoserver/bluetopo/wms?" + baseParams +
+        "&LAYERS=bluetopo:bluetopo_tile_scheme&QUERY_LAYERS=bluetopo:bluetopo_tile_scheme";
+    var queryId = ++wmsQueryId;
+    wmsPanel.innerHTML = '<div class="wms-loading">Querying...</div>';
+    wmsPanel.style.display = "block";
+    bridge.wms_query(lngLat.lat, lngLat.lng, function (results) {
+        if (queryId !== wmsQueryId) return;
+        if (!results) { wmsPanel.innerHTML = '<div class="wms-empty">Query failed</div>'; return; }
+        var bathy = results.bathy;
+        var tile = results.tile;
+        if (!bathy && !tile) {
+            wmsPanel.innerHTML = '<div class="wms-empty">No data at this location</div>';
+            return;
+        }
+        var html = '<div class="wms-header">BlueTopo at ' + lngLat.lat.toFixed(4) + ', ' + lngLat.lng.toFixed(4) + '</div>' +
+            '<div class="wms-credit"><a href="https://nauticalcharts.noaa.gov/learn/nowcoast.html" target="_blank">nowCOAST WMS</a></div>';
+        html += '<table class="popup-table">';
+        // Tile info first
+        if (tile) {
+            var tileFields = [["Tile", "tile"], ["Tile Delivery Date", "delivered_date"],
+                              ["Resolution", "resolution"], ["UTM Zone", "utm"],
+                              ["Tile Scheme Issuance", "issuance"]];
+            for (var i = 0; i < tileFields.length; i++) {
+                var val = tile[tileFields[i][1]];
+                if (val != null) html += "<tr><td class='popup-key'>" + tileFields[i][0] + "</td><td class='popup-val'>" + escapeHtml(String(val)) + "</td></tr>";
+            }
+        }
+        // Separator
+        if (tile && bathy) html += "<tr><td colspan='2' style='padding:2px 0'><div class='legend-divider'></div></td></tr>";
+        // Bathymetry data
+        if (bathy) {
+            var bathyTop = [
+                ["Elevation", "ELEVATION", "m"], ["Uncertainty", "UNCERTAINTY", "m"]
+            ];
+            for (var k = 0; k < bathyTop.length; k++) {
+                var btval = bathy[bathyTop[k][1]];
+                if (typeof btval === "number" && bathyTop[k][2]) btval = btval.toFixed(2) + " " + bathyTop[k][2];
+                if (btval == null) btval = "N/A";
+                html += "<tr><td class='popup-key'>" + bathyTop[k][0] + "</td><td class='popup-val'>" + escapeHtml(String(btval)) + "</td></tr>";
+            }
+            // Separator before contributor metadata
+            html += "<tr><td colspan='2' style='padding:2px 0'><div class='legend-divider'></div></td></tr>";
+            var bathyFields = [
+                ["Source Survey", "source_survey_id"], ["Source Institution", "source_institution"],
+                ["Survey Start", "survey_date_start"], ["Survey End", "survey_date_end"],
+                ["Data Assessment", "data_assessment"], ["Coverage", "coverage"],
+                ["Bathy Coverage", "bathy_coverage"], ["Significant Features", "significant_features"],
+                ["Feature Least Depth", "feature_least_depth"], ["Feature Size", "feature_size"],
+                ["H. Uncert. (fixed)", "horizontal_uncert_fixed"], ["H. Uncert. (var)", "horizontal_uncert_var"],
+                ["V. Uncert. (fixed)", "vertical_uncert_fixed"], ["V. Uncert. (var)", "vertical_uncert_var"],
+                ["License", "license_name"]
+            ];
+            for (var j = 0; j < bathyFields.length; j++) {
+                var bval = bathy[bathyFields[j][1]];
+                if (bval == null) continue;
+                if (typeof bval === "number" && bathyFields[j][2]) bval = bval.toFixed(2) + " " + bathyFields[j][2];
+                html += "<tr><td class='popup-key'>" + bathyFields[j][0] + "</td><td class='popup-val'>" + escapeHtml(String(bval)) + "</td></tr>";
+            }
+        }
+        html += '</table>';
+        wmsPanel.innerHTML = html;
+    });
+}
+
+map.on("click", function (e) {
+    if (drawingMode || rectMode) return;
+    if (wmtsOverlayActive) {
+        queryWmsPoint(e.lngLat);
+    } else {
+        wmsPanel.style.display = "none";
+    }
+});
+
+// Dismiss WMS panel on map click when no WMTS
+map.on("click", function () {
+    if (!wmtsOverlayActive && wmsPanel.style.display !== "none") {
+        wmsPanel.style.display = "none";
+    }
 });
 
 // Pointer cursor on hoverable layers

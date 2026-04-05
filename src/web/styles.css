@@ -918,6 +918,7 @@ button:disabled {
     font-weight: 700;
     color: rgb(140, 140, 140);
     letter-spacing: 0.5px;
+    white-space: nowrap;
 }
 
 .toolbar-menu-sep {
@@ -1097,6 +1098,61 @@ button:disabled {
 }
 
 /* ── Cursor coordinates ─────────────────────────── */
+
+/* ── WMS query panel ─────────────────────────────── */
+
+.wms-panel {
+    position: absolute;
+    bottom: 4px;
+    right: 10px;
+    z-index: 1;
+    background: var(--map-overlay-bg);
+    border-radius: 8px;
+    padding: 0;
+    min-width: 200px;
+    max-width: 300px;
+    max-height: 400px;
+    overflow-y: auto;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4), 0 0 0 1px var(--map-overlay-border);
+    font-family: var(--font-ui);
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.15) transparent;
+}
+
+.wms-header {
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--map-overlay-fg);
+    padding: 6px 10px 4px;
+}
+
+.wms-credit {
+    font-size: 9px;
+    color: var(--map-overlay-fg-muted);
+    padding: 0 10px 4px;
+}
+
+.wms-credit a {
+    color: var(--map-overlay-fg-muted);
+    text-decoration: none;
+}
+
+.wms-credit a:hover {
+    text-decoration: underline;
+}
+
+.wms-loading, .wms-empty {
+    padding: 10px;
+    font-size: 11px;
+    color: var(--map-overlay-fg-muted);
+    text-align: center;
+}
+
+.wms-panel .popup-table {
+    width: 100%;
+}
 
 /* ── Map layer control ───────────────────────────── */
 
