@@ -582,12 +582,18 @@ button:disabled {
 /* ── Map legend ─────────────────────────────────── */
 
 .map-legend {
+    position: absolute;
+    bottom: 4px;
+    right: 10px;
+    z-index: 1;
+    background: var(--map-overlay-bg);
+    border-radius: 8px;
     padding: 8px 10px;
     font-size: 11px;
     font-family: var(--font-ui);
     color: var(--map-overlay-fg-muted);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4), 0 0 0 1px var(--map-overlay-border);
     line-height: 1;
-    border-bottom: 1px solid var(--map-overlay-border);
 }
 
 .legend-row {
@@ -975,9 +981,8 @@ button:disabled {
 .layers-panel {
     position: absolute;
     bottom: 4px;
-    right: 10px;
+    left: 10px;
     z-index: 1;
-    width: 220px;
     background: var(--map-overlay-bg);
     border-radius: 10px;
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4), 0 0 0 1px var(--map-overlay-border);

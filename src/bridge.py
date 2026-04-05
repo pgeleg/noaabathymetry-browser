@@ -433,7 +433,7 @@ class Bridge:
             return False
         import subprocess
         if sys.platform == "win32":
-            os.startfile(path)
+            subprocess.Popen(["explorer", path])
         elif sys.platform == "darwin":
             subprocess.Popen(["open", path])
         else:

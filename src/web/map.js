@@ -721,7 +721,6 @@ document.addEventListener("click", function (e) {
 var layersPanel = document.createElement("div");
 layersPanel.className = "layers-panel";
 layersPanel.innerHTML =
-    '<div id="layers-legend"></div>' +
     '<div class="layers-card">' +
     '<div class="layers-title">Layers</div>' +
     '<div class="layers-row">' +
@@ -982,13 +981,12 @@ function buildLegendHtml() {
 }
 
 function updateLegend() {
-    var container = document.getElementById("layers-legend");
-    container.innerHTML = "";
-    if (!remoteActive && !trackedActive) { legendDiv = null; return; }
+    if (legendDiv) { legendDiv.remove(); legendDiv = null; }
+    if (!remoteActive && !trackedActive) return;
     legendDiv = document.createElement("div");
     legendDiv.className = "map-legend";
     legendDiv.innerHTML = buildLegendHtml();
-    container.appendChild(legendDiv);
+    document.getElementById("map").appendChild(legendDiv);
 }
 
 // ── Layer state ──────────────────────────────────────
