@@ -128,6 +128,7 @@ _SYNC_METHODS = {
     "get_cpu_count": set(),
     "browse_directory": set(),
     "browse_geometry": set(),
+    "open_folder": {"path"},
     "complete_path": {"partial"},
     "save_basemap": {"basemap_name"},
     "remove_recent": {"path"},

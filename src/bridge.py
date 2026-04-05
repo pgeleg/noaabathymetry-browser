@@ -427,6 +427,19 @@ class Bridge:
         except OSError:
             return json.dumps([])
 
+    def open_folder(self, path):
+        path = os.path.expanduser(path)
+        if not os.path.isdir(path):
+            return False
+        import subprocess
+        if sys.platform == "win32":
+            os.startfile(path)
+        elif sys.platform == "darwin":
+            subprocess.Popen(["open", path])
+        else:
+            subprocess.Popen(["xdg-open", path])
+        return True
+
     def prewarm_scheme(self, data_source):
         data_source = data_source if data_source else None
         def worker():

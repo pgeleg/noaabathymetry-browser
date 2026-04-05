@@ -77,6 +77,7 @@ var bridge = {
     get_cpu_count: function (cb) { this._call("get_cpu_count", {}, cb); },
     remove_recent: function (path) { this._call("remove_recent", { path: path }); },
     prewarm_scheme: function (source) { this._call("prewarm_scheme", { data_source: source }); },
+    open_folder: function (path, cb) { this._call("open_folder", { path: path }, cb); },
 };
 
 _connect();

@@ -15,6 +15,7 @@ function _onBridgeReady() {
             var source = typeof recent === "string" ? "bluetopo" : (recent.source || "bluetopo");
             document.getElementById("project-dir").value = path;
             lastCommittedDir = path;
+            updateOpenFolderBtn();
             setSource(source);
             var basemap = recent.basemap;
             if (basemap) setBasemapByName(basemap);
@@ -58,8 +59,9 @@ function onDirInput() {
                     var input = document.getElementById("project-dir");
                     input.value = p;
                     lastCommittedDir = p;
+                    updateOpenFolderBtn();
                     hideSuggestions();
-                    glowElement(input);
+                    glowElement(input.closest(".dir-input-wrap"));
                     refreshTracked();
                 };
                 box.appendChild(div);
@@ -130,6 +132,7 @@ function showRecents() {
                 var currentSource = document.getElementById("data-source").value;
                 input.value = path;
                 lastCommittedDir = path;
+                updateOpenFolderBtn();
                 setSource(source);
                 hideSuggestions();
                 if (source !== currentSource) {
@@ -137,7 +140,7 @@ function showRecents() {
                 } else {
                     refreshTracked();
                 }
-                glowElement(input);
+                glowElement(input.closest(".dir-input-wrap"));
                 glowElement(document.getElementById("source-select"));
             };
             box.appendChild(div);
@@ -179,8 +182,9 @@ document.getElementById("project-dir").addEventListener("keydown", function (e) 
         }
         hideSuggestions();
         lastCommittedDir = input.value;
+        updateOpenFolderBtn();
         input.blur();
-        glowElement(input);
+        glowElement(input.closest(".dir-input-wrap"));
         refreshTracked();
     } else if (e.key === "Escape") {
         hideSuggestions();
@@ -208,10 +212,11 @@ document.getElementById("project-dir").addEventListener("blur", function () {
     setTimeout(function () {
         hideSuggestions();
         if (input.value && input.value !== lastCommittedDir) {
-            glowElement(input);
+            glowElement(input.closest(".dir-input-wrap"));
         }
         if (input.value !== lastCommittedDir) {
             lastCommittedDir = input.value;
+            updateOpenFolderBtn();
             refreshTracked();
         }
     }, 200);
@@ -230,10 +235,24 @@ function browseDir() {
             var input = document.getElementById("project-dir");
             input.value = path;
             lastCommittedDir = path;
-            glowElement(input);
+            updateOpenFolderBtn();
+            glowElement(input.closest(".dir-input-wrap"));
             refreshTracked();
         }
     });
+}
+
+function openProjectFolder() {
+    var dir = document.getElementById("project-dir").value;
+    if (!dir) { showToast("Enter a project directory first"); return; }
+    if (bridge) bridge.open_folder(dir, function (ok) {
+        if (!ok) showToast("Folder not found");
+    });
+}
+
+function updateOpenFolderBtn() {
+    var btn = document.getElementById("btn-open-folder");
+    btn.style.display = lastCommittedDir ? "" : "none";
 }
 
 // ── Custom data source dropdown ──────────────────────

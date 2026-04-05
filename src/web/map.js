@@ -1085,7 +1085,7 @@ function toggleTrackedLayer() {
         if (!bridge) return;
         if (currentCommand === "fetch") { showToast("Wait for fetch to finish"); return; }
         var dir = document.getElementById("project-dir").value;
-        if (!dir) return;
+        if (!dir) { showToast("Enter a project directory first"); return; }
         var source = document.getElementById("data-source").value;
         trackedActive = true;
         trackedLoading = true;

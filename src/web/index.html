@@ -15,11 +15,14 @@
             <div style="display:flex;gap:4px;align-items:center;">
                 <span class="topbar-label">Your Project:</span>
                 <div style="flex:1;position:relative;">
-                    <input type="text" id="project-dir" placeholder="/path/to/project"
-                           oninput="onDirInput()" onfocus="onDirFocus()" onclick="onDirClick()" autocomplete="off" />
+                    <div class="dir-input-wrap">
+                        <input type="text" id="project-dir" placeholder="/path/to/project"
+                               oninput="onDirInput()" onfocus="onDirFocus()" onclick="onDirClick()" autocomplete="off" />
+                        <button id="btn-open-folder" class="dir-open-btn" onclick="openProjectFolder()" title="Open in Explorer" style="display:none">↗</button>
+                    </div>
                     <div id="dir-suggestions" class="suggestions"></div>
                 </div>
-                <button onclick="browseDir()" style="width:auto;padding:6px 14px;min-width:auto;">Open</button>
+                <button onclick="browseDir()" style="width:auto;padding:6px 14px;min-width:auto;" title="Browse for a project folder">Browse</button>
             </div>
         </div>
         <div class="topbar-item" style="min-width:140px;max-width:180px;position:relative;">
