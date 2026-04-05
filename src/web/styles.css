@@ -601,7 +601,7 @@ button:disabled {
     border-radius: 10px;
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4), 0 0 0 1px var(--map-overlay-border);
     font-family: var(--font-ui);
-    overflow: hidden;
+    overflow: visible;
 }
 
 .map-legend {
@@ -999,7 +999,7 @@ button:disabled {
 }
 
 .layers-title {
-    font-size: 9px;
+    font-size: 10px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -1018,7 +1018,7 @@ button:disabled {
     align-items: center;
     gap: 6px;
     padding: 4px 10px;
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 500;
     color: var(--map-overlay-fg-muted);
     background: transparent;
@@ -1039,6 +1039,7 @@ button:disabled {
 .layers-item {
     display: flex;
     align-items: center;
+    position: relative;
     transition: background 0.15s;
 }
 
@@ -1128,6 +1129,15 @@ button:disabled {
     padding: 6px 10px 4px;
 }
 
+.wms-header-link {
+    color: var(--map-overlay-fg);
+    text-decoration: none;
+}
+
+.wms-header-link:hover {
+    text-decoration: underline;
+}
+
 .wms-credit {
     font-size: 9px;
     color: var(--map-overlay-fg-muted);
@@ -1150,11 +1160,95 @@ button:disabled {
     text-align: center;
 }
 
+.wms-panel .popup-table tr.wms-section-label td {
+    padding: 5px 10px 4px;
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--map-overlay-fg);
+    background: rgba(255, 255, 255, 0.06);
+    border-bottom: none;
+}
+
 .wms-panel .popup-table {
     width: 100%;
 }
 
 /* ── Map layer control ───────────────────────────── */
+
+.layers-res-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+    font-size: 18px;
+    line-height: 1;
+    transform: translateY(-2px);
+    color: var(--map-overlay-fg-dim);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: color 0.15s;
+    flex-shrink: 0;
+}
+
+.layers-res-btn:hover,
+.layers-res-btn.res-btn-active {
+    color: var(--map-overlay-fg);
+}
+
+.res-flyout {
+    position: absolute;
+    left: calc(100% + 6px);
+    bottom: 0;
+    background: var(--map-overlay-bg-solid);
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4), 0 0 0 1px var(--map-overlay-border);
+    padding: 4px 0;
+    min-width: 140px;
+    z-index: 10;
+}
+
+.res-flyout-title {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--map-overlay-fg);
+    padding: 6px 12px 0;
+}
+
+.res-flyout-header {
+    font-size: 8px;
+    color: var(--map-overlay-fg-dim);
+    padding: 2px 12px 4px;
+    font-style: italic;
+}
+
+.res-flyout-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 12px;
+    font-size: 10px;
+    color: var(--map-overlay-fg-muted);
+    cursor: pointer;
+}
+
+.res-flyout-item:hover {
+    color: var(--map-overlay-fg);
+}
+
+.res-flyout-item input[type="checkbox"] {
+    margin: 0;
+    accent-color: var(--accent);
+}
+
+.res-flyout-empty {
+    padding: 4px 12px;
+    font-size: 10px;
+    color: var(--map-overlay-fg-dim);
+    font-style: italic;
+}
 
 .layers-btn.layer-loading {
     opacity: 0.6;
@@ -1201,8 +1295,8 @@ button:disabled {
 }
 
 .fill-icon {
-    width: 9px;
-    height: 9px;
+    width: 11px;
+    height: 11px;
     border: 1.5px solid var(--map-overlay-fg-dim);
     border-radius: 2px;
     flex-shrink: 0;

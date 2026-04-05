@@ -730,12 +730,16 @@ legendPanel.innerHTML =
     '<button id="btn-layer-remote" class="layers-btn" onclick="toggleRemoteLayer()" title="What\'s available on NBS?">' +
     '<span class="layer-dot remote"></span>NBS Source</button>' +
     '<button id="btn-remote-fill" class="layers-fill-btn fill-on" onclick="event.stopPropagation();toggleRemoteFill()" title="Toggle fill">' +
-    '<span class="fill-icon"></span></button></div>' +
+    '<span class="fill-icon"></span></button>' +
+    '<button class="layers-res-btn" onclick="event.stopPropagation();toggleResFlyout(\'remote\',this)" title="Filter by resolution">»</button>' +
+    '<div id="res-flyout-remote" class="res-flyout" style="display:none"></div></div>' +
     '<div class="layers-item">' +
     '<button id="btn-layer-tracked" class="layers-btn" onclick="toggleTrackedLayer()" title="What\'s the status of your tiles?">' +
     '<span class="layer-dot tracked"></span>Your Project</button>' +
     '<button id="btn-tracked-fill" class="layers-fill-btn fill-on" onclick="event.stopPropagation();toggleTrackedFill()" title="Toggle fill">' +
-    '<span class="fill-icon"></span></button></div>' +
+    '<span class="fill-icon"></span></button>' +
+    '<button class="layers-res-btn" onclick="event.stopPropagation();toggleResFlyout(\'tracked\',this)" title="Filter by resolution">»</button>' +
+    '<div id="res-flyout-tracked" class="res-flyout" style="display:none"></div></div>' +
     '</div></div>';
 document.getElementById("map").appendChild(legendPanel);
 
@@ -816,6 +820,170 @@ function toggleTrackedFill() {
     });
 }
 
+// ── Resolution filter ─────────────────────────────────
+
+// Resolution filter state: null = show all (no filter active)
+// When active: { resolutions: Set of values, includeNull: boolean }
+var remoteResFilter = null;
+var trackedResFilter = null;
+var remoteAvailableRes = { resolutions: [], hasNull: false };
+var trackedAvailableRes = { resolutions: [], hasNull: false };
+
+function extractResolutions(geojson) {
+    var resSet = {};
+    var hasNull = false;
+    if (geojson && geojson.features) {
+        geojson.features.forEach(function (f) {
+            var r = f.properties.Resolution || f.properties.resolution;
+            if (r != null && r !== "Unknown") resSet[String(r)] = true;
+            else hasNull = true;
+        });
+    }
+    var sorted = Object.keys(resSet).sort(function (a, b) {
+        return parseFloat(a) - parseFloat(b);
+    });
+    return { resolutions: sorted, hasNull: hasNull };
+}
+
+function extractTrackedResolutions(data) {
+    var resSet = {};
+    var hasNull = false;
+    ["up_to_date", "updates_available", "missing_from_disk", "removed_from_scheme"].forEach(function (cat) {
+        if (data[cat] && data[cat].features) {
+            data[cat].features.forEach(function (f) {
+                var r = f.properties.resolution || f.properties.Resolution;
+                if (r != null && r !== "Unknown") resSet[String(r)] = true;
+                else hasNull = true;
+            });
+        }
+    });
+    var sorted = Object.keys(resSet).sort(function (a, b) {
+        return parseFloat(a) - parseFloat(b);
+    });
+    return { resolutions: sorted, hasNull: hasNull };
+}
+
+function buildMapFilter(field, filterState) {
+    if (!filterState) return null;
+    var conditions = [];
+    if (filterState.resolutions.size > 0) {
+        conditions.push(["in", ["get", field], ["literal", Array.from(filterState.resolutions)]]);
+    }
+    if (filterState.includeNull) {
+        conditions.push(["==", ["get", field], null]);
+        conditions.push(["==", ["get", field], "Unknown"]);
+    }
+    if (conditions.length === 0) return false;
+    if (conditions.length === 1) return conditions[0];
+    return ["any"].concat(conditions);
+}
+
+function closeResFlyouts() {
+    document.getElementById("res-flyout-remote").style.display = "none";
+    document.getElementById("res-flyout-tracked").style.display = "none";
+    document.querySelectorAll(".layers-res-btn").forEach(function (b) { b.classList.remove("res-btn-active"); });
+}
+
+function reconcileResFilter(filterState, oldAvail, newAvail) {
+    if (!filterState) return null;
+    // New resolutions default to visible
+    newAvail.resolutions.forEach(function (r) {
+        if (oldAvail.resolutions.indexOf(r) < 0) filterState.resolutions.add(r);
+    });
+    // Remove stale resolutions
+    filterState.resolutions.forEach(function (r) {
+        if (newAvail.resolutions.indexOf(r) < 0) filterState.resolutions.delete(r);
+    });
+    // Null: show by default if newly appearing
+    if (newAvail.hasNull && !oldAvail.hasNull) filterState.includeNull = true;
+    if (!newAvail.hasNull) filterState.includeNull = false;
+    // All on → reset to null
+    var allResOn = newAvail.resolutions.every(function (r) { return filterState.resolutions.has(r); });
+    var allNullOn = !newAvail.hasNull || filterState.includeNull;
+    if (allResOn && allNullOn) return null;
+    return filterState;
+}
+
+function applyRemoteResFilter() {
+    var filter = buildMapFilter("Resolution", remoteResFilter);
+    if (map.getLayer("remote-fill")) map.setFilter("remote-fill", filter);
+    if (map.getLayer("remote-outline")) map.setFilter("remote-outline", filter);
+}
+
+function applyTrackedResFilter() {
+    var filter = buildMapFilter("resolution", trackedResFilter);
+    ["up_to_date", "updates_available", "missing_from_disk", "removed_from_scheme"].forEach(function (cat) {
+        if (map.getLayer("tracked-" + cat + "-fill")) map.setFilter("tracked-" + cat + "-fill", filter);
+        if (map.getLayer("tracked-" + cat + "-outline")) map.setFilter("tracked-" + cat + "-outline", filter);
+    });
+}
+
+function toggleResFlyout(layer, btn) {
+    var flyout = document.getElementById("res-flyout-" + layer);
+    var allBtns = document.querySelectorAll(".layers-res-btn");
+    if (flyout.style.display !== "none") {
+        flyout.style.display = "none";
+        allBtns.forEach(function (b) { b.classList.remove("res-btn-active"); });
+        return;
+    }
+    // Close other flyout
+    var other = layer === "remote" ? "tracked" : "remote";
+    document.getElementById("res-flyout-" + other).style.display = "none";
+    allBtns.forEach(function (b) { b.classList.remove("res-btn-active"); });
+    if (btn) btn.classList.add("res-btn-active");
+
+    var available = layer === "remote" ? remoteAvailableRes : trackedAvailableRes;
+    var filterState = layer === "remote" ? remoteResFilter : trackedResFilter;
+    var hasNull = available.hasNull;
+    var resList = available.resolutions;
+    if (resList.length === 0 && !hasNull) {
+        flyout.innerHTML = '<div class="res-flyout-empty">No data loaded</div>';
+        flyout.style.display = "block";
+        return;
+    }
+    var title = layer === "remote" ? "NBS Source" : "Your Project";
+    var html = '<div class="res-flyout-title">' + title + '</div>' +
+        '<div class="res-flyout-header">Visibility by Resolution</div>';
+    resList.forEach(function (r) {
+        var checked = !filterState || filterState.resolutions.has(r);
+        html += '<label class="res-flyout-item"><input type="checkbox" ' + (checked ? "checked" : "") +
+            ' onchange="toggleResolution(\'' + layer + '\',\'' + escapeHtml(r) + '\',false,this.checked)"> ' + escapeHtml(r) + '</label>';
+    });
+    if (hasNull) {
+        var nullChecked = !filterState || filterState.includeNull;
+        html += '<label class="res-flyout-item"><input type="checkbox" ' + (nullChecked ? "checked" : "") +
+            ' onchange="toggleResolution(\'' + layer + '\',null,true,this.checked)"> No resolution</label>';
+    }
+    flyout.innerHTML = html;
+    flyout.style.display = "block";
+}
+
+function toggleResolution(layer, res, isNull, on) {
+    var available = layer === "remote" ? remoteAvailableRes : trackedAvailableRes;
+    var filterState;
+    if (layer === "remote") {
+        if (!remoteResFilter) remoteResFilter = { resolutions: new Set(available.resolutions), includeNull: available.hasNull };
+        filterState = remoteResFilter;
+    } else {
+        if (!trackedResFilter) trackedResFilter = { resolutions: new Set(available.resolutions), includeNull: available.hasNull };
+        filterState = trackedResFilter;
+    }
+    if (isNull) {
+        filterState.includeNull = on;
+    } else {
+        if (on) filterState.resolutions.add(res); else filterState.resolutions.delete(res);
+    }
+    // Reset to null (no filter) if everything is selected
+    var allResOn = available.resolutions.every(function (r) { return filterState.resolutions.has(r); });
+    var allNullOn = !available.hasNull || filterState.includeNull;
+    if (allResOn && allNullOn) {
+        if (layer === "remote") remoteResFilter = null;
+        else trackedResFilter = null;
+    }
+    if (layer === "remote") applyRemoteResFilter();
+    else applyTrackedResFilter();
+}
+
 // ── Remote layer ─────────────────────────────────────
 
 function addRemoteToMap(geojson) {
@@ -826,6 +994,10 @@ function addRemoteToMap(geojson) {
         map.addLayer({ id: "remote-fill", type: "fill", source: "remote", paint: { "fill-color": ["get", "_color"], "fill-opacity": remoteFilled ? 0.8 : 0 } });
         map.addLayer({ id: "remote-outline", type: "line", source: "remote", paint: { "line-color": ["get", "_color"], "line-width": 1, "line-opacity": 0.7 } });
     }
+    var oldAvail = remoteAvailableRes;
+    remoteAvailableRes = extractResolutions(geojson);
+    remoteResFilter = reconcileResFilter(remoteResFilter, oldAvail, remoteAvailableRes);
+    applyRemoteResFilter();
     raiseTrackedLayers();
     raiseDrawLayers();
 }
@@ -876,6 +1048,10 @@ function addTrackedToMap(data) {
             map.addLayer({ id: srcId + "-outline", type: "line", source: srcId, paint: { "line-color": "rgba(0,0,0,0.3)", "line-width": 1 } });
         }
     });
+    var oldAvail = trackedAvailableRes;
+    trackedAvailableRes = extractTrackedResolutions(data);
+    trackedResFilter = reconcileResFilter(trackedResFilter, oldAvail, trackedAvailableRes);
+    applyTrackedResFilter();
     raiseDrawLayers();
 }
 
@@ -954,11 +1130,12 @@ function queryWmsPoint(lngLat) {
             wmsPanel.innerHTML = '<div class="wms-empty">No data at this location</div>';
             return;
         }
-        var html = '<div class="wms-header">BlueTopo at ' + lngLat.lat.toFixed(4) + ', ' + lngLat.lng.toFixed(4) + '</div>' +
+        var html = '<div class="wms-header"><a href="https://nauticalcharts.noaa.gov/data/bluetopo_specs.html" target="_blank" class="wms-header-link">BlueTopo</a> at ' + lngLat.lat.toFixed(4) + ', ' + lngLat.lng.toFixed(4) + '</div>' +
             '<div class="wms-credit"><a href="https://nauticalcharts.noaa.gov/learn/nowcoast.html" target="_blank">nowCOAST WMS</a></div>';
         html += '<table class="popup-table">';
         // Tile info first
         if (tile) {
+            html += "<tr class='wms-section-label'><td colspan='2'>NBS Tile</td></tr>";
             var tileFields = [["Tile", "tile"], ["Tile Delivery Date", "delivered_date"],
                               ["Resolution", "resolution"], ["UTM Zone", "utm"],
                               ["Tile Scheme Issuance", "issuance"]];
@@ -967,8 +1144,8 @@ function queryWmsPoint(lngLat) {
                 if (val != null) html += "<tr><td class='popup-key'>" + tileFields[i][0] + "</td><td class='popup-val'>" + escapeHtml(String(val)) + "</td></tr>";
             }
         }
-        // Separator
-        if (tile && bathy) html += "<tr><td colspan='2' style='padding:2px 0'><div class='legend-divider'></div></td></tr>";
+        // Section label
+        if (bathy) html += "<tr class='wms-section-label'><td colspan='2'>Pixel Elevation</td></tr>";
         // Bathymetry data
         if (bathy) {
             var bathyTop = [
@@ -980,23 +1157,39 @@ function queryWmsPoint(lngLat) {
                 if (btval == null) btval = "N/A";
                 html += "<tr><td class='popup-key'>" + bathyTop[k][0] + "</td><td class='popup-val'>" + escapeHtml(String(btval)) + "</td></tr>";
             }
-            // Separator before contributor metadata
-            html += "<tr><td colspan='2' style='padding:2px 0'><div class='legend-divider'></div></td></tr>";
+            // Section label before contributor metadata
+            html += "<tr class='wms-section-label'><td colspan='2'>Pixel Source</td></tr>";
             var bathyFields = [
-                ["Source Survey", "source_survey_id"], ["Source Institution", "source_institution"],
-                ["Survey Start", "survey_date_start"], ["Survey End", "survey_date_end"],
-                ["Data Assessment", "data_assessment"], ["Coverage", "coverage"],
-                ["Bathy Coverage", "bathy_coverage"], ["Significant Features", "significant_features"],
-                ["Feature Least Depth", "feature_least_depth"], ["Feature Size", "feature_size"],
-                ["H. Uncert. (fixed)", "horizontal_uncert_fixed"], ["H. Uncert. (var)", "horizontal_uncert_var"],
-                ["V. Uncert. (fixed)", "vertical_uncert_fixed"], ["V. Uncert. (var)", "vertical_uncert_var"],
-                ["License", "license_name"]
+                ["Source Survey ID", "source_survey_id", "The survey filename.", "String"],
+                ["Source Institution", "source_institution", "The institution responsible for the survey.", "String"],
+                ["Survey Start Date", "survey_date_start", "The start date of the survey.", "String ISO 8601:2004"],
+                ["Survey End Date", "survey_date_end", "The end date of the survey.", "String ISO 8601:2004"],
+                ["Data Assessment", "data_assessment", "Provides an overall indicative level of assessment of bathymetric data from which further attribution is derived.", "Unsigned Integer\n1 = assessed\n3 = unassessed"],
+                ["Full Seafloor Coverage", "coverage", "A binary statement expressing if seafloor coverage has been achieved in the area covered by hydrographic surveys. If false, the bathy_coverage attribute must also be false. If true, bathy_coverage may either be true or false.", "Boolean\n1 = True\n0 = False"],
+                ["Full Bathy Coverage", "bathy_coverage", "A binary expression stating if full bathymetric coverage has been achieved in the area covered by hydrographic surveys. If true, this indicates the value is sourced from a measured depth, not an interpolated depth. If false, no depth measurement was achieved.", "Boolean\n1 = True\n0 = False"],
+                ["Sig. Features Detected", "significant_features", "A binary indication that a systematic method of exploring the seafloor was undertaken to detect significant features. If false, feature_size and feature_least_depth attributes are both not applicable. In the context of bathymetry, a feature is any object, whether manmade or not, projecting above the seafloor, which may be considered a danger to surface navigation.", "Boolean\n1 = True\n0 = False"],
+                ["Feature Least Depth", "feature_least_depth", "A binary expression of the ability of the survey to detect the least depth of features.", "Boolean\n1 = True\n0 = False"],
+                ["Feature Size", "feature_size", "The size of the smallest feature that the survey was capable of detecting with a high probability - unit is cubic meters.", "Float"],
+                ["H. Uncertainty (fixed)", "horizontal_uncert_fixed", "The best estimate of the fixed accuracy of a position. Reported at a 95% Confidence Interval.", "Float"],
+                ["H. Uncertainty (var)", "horizontal_uncert_var", "The best estimate of the variable accuracy of a position as a multiplier of depth. Reported at a 95% Confidence Interval.", "Float"],
+                ["V. Uncertainty (fixed)", "vertical_uncert_fixed", "The best estimate of the accuracy of depths, heights, vertical distances and vertical clearances. Reported at a 95% Confidence Interval.", "Float"],
+                ["V. Uncertainty (var)", "vertical_uncert_var", "The best estimate of the variable accuracy of depths, heights, vertical distances and vertical clearances. Reported at a 95% Confidence Interval.", "Float"],
+                ["License Name", "license_name", "The license information regarding restrictions on data redistribution, usage, and source attribution.", "String"],
+                ["License URL", "license_url", "The URL or DOI where the license is available.", "String"]
             ];
             for (var j = 0; j < bathyFields.length; j++) {
                 var bval = bathy[bathyFields[j][1]];
                 if (bval == null) continue;
-                if (typeof bval === "number" && bathyFields[j][2]) bval = bval.toFixed(2) + " " + bathyFields[j][2];
-                html += "<tr><td class='popup-key'>" + bathyFields[j][0] + "</td><td class='popup-val'>" + escapeHtml(String(bval)) + "</td></tr>";
+                var rawVal = bval;
+                if (typeof bval === "number") bval = bval.toFixed(2);
+                var valHtml = escapeHtml(String(bval));
+                // Make URLs clickable
+                if (typeof rawVal === "string" && rawVal.indexOf("http") === 0) {
+                    valHtml = "<a href='" + escapeHtml(rawVal) + "' target='_blank' style='color:var(--map-overlay-fg)'>" + valHtml + "</a>";
+                }
+                var desc = bathyFields[j][2] || "";
+                var valType = bathyFields[j][3] || "";
+                html += "<tr><td class='popup-key' title='" + escapeHtml(desc) + "'>" + bathyFields[j][0] + "</td><td class='popup-val' title='" + escapeHtml(valType) + "'>" + valHtml + "</td></tr>";
             }
         }
         html += '</table>';
@@ -1123,6 +1316,9 @@ function clearTrackedOnly() {
         trackedIsReload = false;
         trackedStartup = false;
         trackedDisplayData = null;
+        trackedResFilter = null;
+        trackedAvailableRes = { resolutions: [], hasNull: false };
+        closeResFlyouts();
         removeTrackedFromMap();
         var tb = document.getElementById("btn-layer-tracked");
         tb.classList.remove("layer-on", "layer-loading");
@@ -1144,6 +1340,9 @@ function clearAllLayers() {
         remoteActive = false;
         remoteLoading = false;
         remoteDisplayData = null;
+        remoteResFilter = null;
+        remoteAvailableRes = { resolutions: [], hasNull: false };
+        closeResFlyouts();
         removeRemoteFromMap();
         var rb = document.getElementById("btn-layer-remote");
         rb.classList.remove("layer-on", "layer-loading");
@@ -1167,11 +1366,15 @@ function toggleRemoteLayer() {
     var btn = document.getElementById("btn-layer-remote");
     if (remoteActive) {
         remoteActive = false;
+        remoteResFilter = null;
+        remoteAvailableRes = { resolutions: [], hasNull: false };
+        closeResFlyouts();
         removeRemoteFromMap();
         btn.classList.remove("layer-on");
         updateLegend();
     } else {
         if (!bridge) return;
+        closeResFlyouts();
         var source = document.getElementById("data-source").value;
         remoteActive = true;
         remoteLoading = true;
@@ -1188,12 +1391,16 @@ function toggleTrackedLayer() {
     var btn = document.getElementById("btn-layer-tracked");
     if (trackedActive) {
         trackedActive = false;
+        trackedResFilter = null;
+        trackedAvailableRes = { resolutions: [], hasNull: false };
+        closeResFlyouts();
         removeTrackedFromMap();
         btn.classList.remove("layer-on");
         updateLegend();
     } else {
         if (!bridge) return;
         if (currentCommand === "fetch") { showToast("Wait for fetch to finish"); return; }
+        closeResFlyouts();
         var dir = document.getElementById("project-dir").value;
         if (!dir) { showToast("Enter a project directory first"); return; }
         var source = document.getElementById("data-source").value;
@@ -1209,6 +1416,7 @@ function toggleTrackedLayer() {
 
 function reloadTrackedLayer() {
     if (!bridge || trackedLoading) return;
+    closeResFlyouts();
     trackedLoading = true;
     trackedIsReload = true;
     var btn = document.getElementById("btn-layer-tracked");
@@ -1241,14 +1449,8 @@ function onLayersReady(data) {
         var btn = document.getElementById("btn-layer-remote");
         btn.classList.remove("layer-loading");
         // Discard if remote was turned off or source changed
-        if (!remoteActive) {
-            remoteLoading = false;
-            return;
-        }
-        if (data.source && remoteRequestedSource && data.source !== remoteRequestedSource) {
-            remoteLoading = false;
-            return;
-        }
+        if (!remoteActive) return;
+        if (data.source && remoteRequestedSource && data.source !== remoteRequestedSource) return;
         if (data.error) {
             remoteActive = false;
             btn.classList.remove("layer-on");
