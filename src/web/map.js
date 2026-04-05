@@ -392,12 +392,10 @@ map.on("mousemove", function (e) {
 
 // ── Cursor coordinates ───────────────────────────────
 
-var coordDiv = document.createElement("div");
-coordDiv.className = "map-coords";
-coordDiv.textContent = "0.0000, 0.0000";
+var barCoords = document.getElementById("bar-coords");
 
 map.on("mousemove", function (e) {
-    coordDiv.textContent = e.lngLat.lat.toFixed(4) + ", " + e.lngLat.lng.toFixed(4);
+    barCoords.textContent = e.lngLat.lat.toFixed(4) + ", " + e.lngLat.lng.toFixed(4);
 });
 
 // ── Lat/long gridlines ───────────────────────────────
@@ -718,21 +716,25 @@ document.addEventListener("click", function (e) {
 
 // ── Layer toggle control ─────────────────────────────
 
-var layersPanel = document.createElement("div");
-layersPanel.className = "layers-panel";
-layersPanel.innerHTML =
-    '<div class="layers-card">' +
+var legendPanel = document.createElement("div");
+legendPanel.className = "legend-panel";
+legendPanel.innerHTML =
+    '<div id="legend-content"></div>' +
+    '<div class="layers-section">' +
     '<div class="layers-title">Layers</div>' +
     '<div class="layers-row">' +
+    '<div class="layers-item">' +
     '<button id="btn-layer-remote" class="layers-btn" onclick="toggleRemoteLayer()" title="What\'s available on NBS?">' +
     '<span class="layer-dot remote"></span>NBS Source</button>' +
+    '<button id="btn-remote-fill" class="layers-fill-btn fill-on" onclick="event.stopPropagation();toggleRemoteFill()" title="Toggle fill">' +
+    '<span class="fill-icon"></span></button></div>' +
+    '<div class="layers-item">' +
     '<button id="btn-layer-tracked" class="layers-btn" onclick="toggleTrackedLayer()" title="What\'s the status of your tiles?">' +
     '<span class="layer-dot tracked"></span>Your Project</button>' +
-    '<button id="btn-layer-fill" class="layers-btn layer-on" onclick="toggleFill()" title="Toggle fill">' +
-    '<span class="fill-icon"></span>Fill</button>' +
+    '<button id="btn-tracked-fill" class="layers-fill-btn fill-on" onclick="event.stopPropagation();toggleTrackedFill()" title="Toggle fill">' +
+    '<span class="fill-icon"></span></button></div>' +
     '</div></div>';
-layersPanel.appendChild(coordDiv);
-document.getElementById("map").appendChild(layersPanel);
+document.getElementById("map").appendChild(legendPanel);
 
 // ── Tile scheme layers ───────────────────────────────
 
@@ -762,7 +764,8 @@ var AGE_COLORS = [
     { days: Infinity, color: [90, 90, 98] }
 ];
 var NULL_DATE_COLOR = [30, 30, 30];
-var layerFilled = true;
+var remoteFilled = true;
+var trackedFilled = true;
 
 function getDateField(props) {
     return props["Delivered_Date"] || props["ISSUANCE"] || null;
@@ -796,13 +799,17 @@ var TRACKED_COLORS = {
     removed_from_scheme: "rgb(160,160,168)",
 };
 
-function toggleFill() {
-    layerFilled = !layerFilled;
-    document.getElementById("btn-layer-fill").classList.toggle("layer-on", layerFilled);
-    var opacity = layerFilled ? 0.8 : 0;
-    if (map.getLayer("remote-fill")) map.setPaintProperty("remote-fill", "fill-opacity", opacity);
+function toggleRemoteFill() {
+    remoteFilled = !remoteFilled;
+    document.getElementById("btn-remote-fill").classList.toggle("fill-on", remoteFilled);
+    if (map.getLayer("remote-fill")) map.setPaintProperty("remote-fill", "fill-opacity", remoteFilled ? 0.8 : 0);
+}
+
+function toggleTrackedFill() {
+    trackedFilled = !trackedFilled;
+    document.getElementById("btn-tracked-fill").classList.toggle("fill-on", trackedFilled);
     ["up_to_date", "updates_available", "missing_from_disk", "removed_from_scheme"].forEach(function (cat) {
-        if (map.getLayer("tracked-" + cat + "-fill")) map.setPaintProperty("tracked-" + cat + "-fill", "fill-opacity", layerFilled ? 1 : 0);
+        if (map.getLayer("tracked-" + cat + "-fill")) map.setPaintProperty("tracked-" + cat + "-fill", "fill-opacity", trackedFilled ? 1 : 0);
     });
 }
 
@@ -813,7 +820,7 @@ function addRemoteToMap(geojson) {
         map.getSource("remote").setData(geojson);
     } else {
         map.addSource("remote", { type: "geojson", data: geojson });
-        map.addLayer({ id: "remote-fill", type: "fill", source: "remote", paint: { "fill-color": ["get", "_color"], "fill-opacity": layerFilled ? 0.8 : 0 } });
+        map.addLayer({ id: "remote-fill", type: "fill", source: "remote", paint: { "fill-color": ["get", "_color"], "fill-opacity": remoteFilled ? 0.8 : 0 } });
         map.addLayer({ id: "remote-outline", type: "line", source: "remote", paint: { "line-color": ["get", "_color"], "line-width": 1, "line-opacity": 0.7 } });
     }
     raiseTrackedLayers();
@@ -852,7 +859,7 @@ function addTrackedToMap(data) {
         if (!map.getSource(srcId)) {
             if (!hasFeatures) return;
             map.addSource(srcId, { type: "geojson", data: geojson });
-            map.addLayer({ id: srcId + "-fill", type: "fill", source: srcId, paint: { "fill-color": TRACKED_COLORS[cat], "fill-opacity": layerFilled ? 1 : 0 } });
+            map.addLayer({ id: srcId + "-fill", type: "fill", source: srcId, paint: { "fill-color": TRACKED_COLORS[cat], "fill-opacity": trackedFilled ? 1 : 0 } });
         } else {
             map.getSource(srcId).setData(hasFeatures ? geojson : empty);
         }
@@ -981,12 +988,13 @@ function buildLegendHtml() {
 }
 
 function updateLegend() {
-    if (legendDiv) { legendDiv.remove(); legendDiv = null; }
-    if (!remoteActive && !trackedActive) return;
+    var container = document.getElementById("legend-content");
+    container.innerHTML = "";
+    if (!remoteActive && !trackedActive) { legendDiv = null; return; }
     legendDiv = document.createElement("div");
     legendDiv.className = "map-legend";
     legendDiv.innerHTML = buildLegendHtml();
-    document.getElementById("map").appendChild(legendDiv);
+    container.appendChild(legendDiv);
 }
 
 // ── Layer state ──────────────────────────────────────
