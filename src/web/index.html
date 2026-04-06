@@ -65,7 +65,7 @@
         <div class="command-left">
             <div class="command-bars">
                 <div class="commandbar" id="fetchbar">
-                    <button id="btn-fetch" class="command-btn" onclick="runFetch()">Fetch</button>
+                    <button id="btn-fetch" class="command-btn" onclick="runFetch()" title="Download tiles from NBS to your project folder.">Fetch</button>
                     <div class="commandbar-field" style="position:relative;">
                         <span>Geometry</span>
                         <input type="text" id="opt-geometry" placeholder="draw on map, or path / geojson / WKT / bbox" oninput="onGeomInput()" autocomplete="off">
@@ -78,7 +78,7 @@
                     </div>
                 </div>
                 <div class="commandbar" id="mosaicbar">
-                    <button id="btn-mosaic" class="command-btn" onclick="runMosaic()">Mosaic</button>
+                    <button id="btn-mosaic" class="command-btn" onclick="runMosaic()" title="Build per-UTM-zone mosaics from your downloaded tiles.">Mosaic</button>
                     <label class="switch-label" onclick="document.getElementById('opt-hillshade').classList.toggle('on')">
                         Hillshade
                         <span class="switch" id="opt-hillshade"><span class="switch-knob"></span></span>
@@ -94,7 +94,7 @@
                     <span class="commandbar-disclaimer"><strong>Disclaimer:</strong> More workers increase memory usage.<br>Mosaics require significant disk space.</span>
                 </div>
                 <div class="commandbar" id="exportbar">
-                    <button id="btn-export" class="command-btn" onclick="runExport()">Export</button>
+                    <button id="btn-export" class="command-btn" onclick="runExport()" title="Validate then package your project into a portable zip. Recipients can use the files directly and even continue the project themselves if they wish, picking up where you left off.">Export</button>
                     <label class="switch-label" onclick="document.getElementById('opt-export-mosaics').classList.toggle('on')">
                         Include Mosaics
                         <span class="switch on" id="opt-export-mosaics"><span class="switch-knob"></span></span>

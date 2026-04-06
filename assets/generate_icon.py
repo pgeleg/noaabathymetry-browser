@@ -7,14 +7,7 @@ from PIL import Image, ImageDraw, ImageFont
 def make_icon_frame(logo, size, fill_bg=False):
     scaled = logo.resize((size, size), Image.LANCZOS)
     if fill_bg:
-        # Draw squircle background (matches macOS icon shape)
-        frame = Image.new("RGBA", (size, size), (0, 0, 0, 0))
-        mask = Image.new("L", (size, size), 0)
-        mask_draw = ImageDraw.Draw(mask)
-        r = int(size * 0.2237)
-        mask_draw.rounded_rectangle([0, 0, size - 1, size - 1], radius=r, fill=255)
-        bg = Image.new("RGBA", (size, size), (10, 25, 50, 255))
-        frame = Image.composite(bg, frame, mask)
+        frame = Image.new("RGBA", (size, size), (10, 25, 50, 255))
         frame.paste(scaled, (0, 0), mask=scaled)
     else:
         frame = scaled
