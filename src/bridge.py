@@ -23,6 +23,7 @@ from nbs.noaabathymetry.library import (
     list_tile_scheme, fetch_tile_scheme, parse_tile_scheme,
     extended_status_tiles,
 )
+from nbs.noaabathymetry.library.export import export_project
 from nbs.noaabathymetry._internal.config import resolve_data_source
 
 from src.dialogs import browse_directory as _browse_directory
@@ -368,6 +369,20 @@ class Bridge:
             reproject=opts.get("reproject", False),
             workers=opts.get("workers") or None,
             mosaic_resolution_target=opts.get("resolution_target") or None,
+        ), project_dir=project_dir, data_source=data_source)
+
+    def export(self, project_dir, data_source, include_mosaics, flag_for_repair):
+        project_dir = os.path.expanduser(project_dir.strip()) if project_dir else ""
+        data_source = data_source if data_source else None
+        dirname = os.path.basename(os.path.normpath(project_dir))
+        source_name = data_source or "bluetopo"
+        output_path = os.path.join(project_dir, dirname + "_" + source_name + ".zip")
+        self._run_in_thread(lambda: export_project(
+            project_dir=project_dir,
+            output_path=output_path,
+            data_source=data_source,
+            include_mosaics=include_mosaics,
+            flag_for_repair=flag_for_repair,
         ), project_dir=project_dir, data_source=data_source)
 
     def get_cpu_count(self):

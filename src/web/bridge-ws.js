@@ -67,6 +67,9 @@ var bridge = {
     mosaic: function (dir, source, opts) {
         this._call("mosaic", { project_dir: dir, data_source: source, options_json: opts });
     },
+    export: function (dir, source, includeMosaics, flagForRepair) {
+        this._call("export", { project_dir: dir, data_source: source, include_mosaics: includeMosaics, flag_for_repair: flagForRepair });
+    },
     get_recents: function (cb) { this._call("get_recents", {}, cb); },
     save_basemap: function (name) { this._call("save_basemap", { basemap_name: name }); },
     browse_directory: function (cb) { this._call("browse_directory", {}, cb); },

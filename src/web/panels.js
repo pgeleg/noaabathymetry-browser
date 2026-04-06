@@ -404,6 +404,11 @@ function onCommandDone(data) {
                 showToast("Fetch complete");
             } else if (wasCommand === "mosaic") {
                 showToast("Mosaic complete");
+            } else if (wasCommand === "export") {
+                var size = data.result && data.result.zip_size
+                    ? " (" + (data.result.zip_size / 1e6).toFixed(1) + " MB)"
+                    : "";
+                showToast("Export complete" + size);
             } else {
                 showToast("Complete");
             }
@@ -438,7 +443,7 @@ function getSource() {
 }
 
 function setButtonsDisabled(disabled) {
-    var btns = ["btn-fetch", "btn-mosaic"];
+    var btns = ["btn-fetch", "btn-mosaic", "btn-export"];
     var msg = disabled ? "Waiting for current task to finish" : "";
     btns.forEach(function (id) {
         var btn = document.getElementById(id);
@@ -461,7 +466,7 @@ function runCommand(name, fn) {
     showLog();
     setButtonsDisabled(true);
     setStatus(name.charAt(0).toUpperCase() + name.slice(1) + "...");
-    var runLabel = name === "fetch" ? "Fetching..." : "Mosaicing...";
+    var runLabel = name === "fetch" ? "Fetching..." : name === "mosaic" ? "Mosaicing..." : "Exporting...";
     document.getElementById("log-command").textContent = "· " + runLabel;
     try {
         fn(dir);
@@ -622,6 +627,14 @@ function runFetch() {
 function runMosaic() {
     runCommand("mosaic", function (dir) {
         bridge.mosaic(dir, getSource(), getMosaicOptions());
+    });
+}
+
+function runExport() {
+    runCommand("export", function (dir) {
+        var includeMosaics = document.getElementById("opt-export-mosaics").classList.contains("on");
+        var flagForRepair = document.getElementById("opt-export-repair").classList.contains("on");
+        bridge.export(dir, getSource(), includeMosaics, flagForRepair);
     });
 }
 

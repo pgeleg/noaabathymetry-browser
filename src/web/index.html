@@ -93,6 +93,18 @@
                     </div>
                     <span class="commandbar-disclaimer"><strong>Disclaimer:</strong> More workers increase memory usage.<br>Mosaics require significant disk space.</span>
                 </div>
+                <div class="commandbar" id="exportbar">
+                    <button id="btn-export" class="command-btn" onclick="runExport()">Export</button>
+                    <label class="switch-label" onclick="document.getElementById('opt-export-mosaics').classList.toggle('on')">
+                        Include Mosaics
+                        <span class="switch on" id="opt-export-mosaics"><span class="switch-knob"></span></span>
+                    </label>
+                    <label class="switch-label" onclick="document.getElementById('opt-export-repair').classList.toggle('on')" title="If verification finds tiles with mismatched checksums, flag them so the next Fetch re-downloads them">
+                        Flag for Repair
+                        <span class="switch" id="opt-export-repair"><span class="switch-knob"></span></span>
+                    </label>
+                    <span class="commandbar-disclaimer"><strong>Flag for Repair:</strong> If checksums mismatch,<br>flag tiles so the next Fetch re-downloads them.</span>
+                </div>
             </div>
             <div id="statusbar">
                 <span class="left" id="statusbar-left">Ready</span>
