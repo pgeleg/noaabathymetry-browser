@@ -803,7 +803,7 @@ var TRACKED_COLORS = {
     up_to_date: "rgb(34,197,94)",
     updates_available: "rgb(249,115,22)",
     missing_from_disk: "rgb(239,68,68)",
-    removed_from_scheme: "rgb(160,160,168)",
+    removed_from_nbs: "rgb(160,160,168)",
 };
 
 function toggleRemoteFill() {
@@ -815,7 +815,7 @@ function toggleRemoteFill() {
 function toggleTrackedFill() {
     trackedFilled = !trackedFilled;
     document.getElementById("btn-tracked-fill").classList.toggle("fill-on", trackedFilled);
-    ["up_to_date", "updates_available", "missing_from_disk", "removed_from_scheme"].forEach(function (cat) {
+    ["up_to_date", "updates_available", "missing_from_disk", "removed_from_nbs"].forEach(function (cat) {
         if (map.getLayer("tracked-" + cat + "-fill")) map.setPaintProperty("tracked-" + cat + "-fill", "fill-opacity", trackedFilled ? 1 : 0);
     });
 }
@@ -848,7 +848,7 @@ function extractResolutions(geojson) {
 function extractTrackedResolutions(data) {
     var resSet = {};
     var hasNull = false;
-    ["up_to_date", "updates_available", "missing_from_disk", "removed_from_scheme"].forEach(function (cat) {
+    ["up_to_date", "updates_available", "missing_from_disk", "removed_from_nbs"].forEach(function (cat) {
         if (data[cat] && data[cat].features) {
             data[cat].features.forEach(function (f) {
                 var r = f.properties.resolution || f.properties.Resolution;
@@ -912,7 +912,7 @@ function applyRemoteResFilter() {
 
 function applyTrackedResFilter() {
     var filter = buildMapFilter("resolution", trackedResFilter);
-    ["up_to_date", "updates_available", "missing_from_disk", "removed_from_scheme"].forEach(function (cat) {
+    ["up_to_date", "updates_available", "missing_from_disk", "removed_from_nbs"].forEach(function (cat) {
         if (map.getLayer("tracked-" + cat + "-fill")) map.setFilter("tracked-" + cat + "-fill", filter);
         if (map.getLayer("tracked-" + cat + "-outline")) map.setFilter("tracked-" + cat + "-outline", filter);
     });
@@ -1010,7 +1010,7 @@ function removeRemoteFromMap() {
 
 // ── Tracked layers ───────────────────────────────────
 
-var trackedCategories = ["up_to_date", "updates_available", "missing_from_disk", "removed_from_scheme"];
+var trackedCategories = ["up_to_date", "updates_available", "missing_from_disk", "removed_from_nbs"];
 
 function raiseTrackedLayers() {
     // Fills first, then outlines on top
@@ -1276,7 +1276,7 @@ function buildLegendHtml() {
     if (trackedActive) {
         if (html) html += "<div class='legend-divider'></div>";
         html += "<div class='legend-section'>" + escapeHtml(trackedDirName || "Your Project") + "</div>";
-        var cats = [["up_to_date", "Up to date"], ["updates_available", "Updates available"], ["missing_from_disk", "Missing from disk"], ["removed_from_scheme", "Removed from scheme"]];
+        var cats = [["up_to_date", "Up to date"], ["updates_available", "Updates available"], ["missing_from_disk", "Missing from disk"], ["removed_from_nbs", "Removed from NBS"]];
         for (var j = 0; j < cats.length; j++) {
             html += "<div class='legend-row'><span class='legend-swatch' style='background:" + TRACKED_COLORS[cats[j][0]] + "'></span>" + cats[j][1] + "</div>";
         }
@@ -1499,7 +1499,7 @@ function onLayersReady(data) {
             trackedStartup = false;
             var updates = data.data.updates_available ? data.data.updates_available.features.length : 0;
             var missing = data.data.missing_from_disk ? data.data.missing_from_disk.features.length : 0;
-            var removed = data.data.removed_from_scheme ? data.data.removed_from_scheme.features.length : 0;
+            var removed = data.data.removed_from_nbs ? data.data.removed_from_nbs.features.length : 0;
             var total = data.total || 0;
             var issues = (updates > 0 ? 1 : 0) + (missing > 0 ? 1 : 0) + (removed > 0 ? 1 : 0);
             if (issues === 1 && updates > 0) {

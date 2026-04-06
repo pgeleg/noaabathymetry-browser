@@ -526,7 +526,7 @@ class Bridge:
                     "up_to_date": result.up_to_date,
                     "updates_available": result.updates_available,
                     "missing_from_disk": result.missing_from_disk,
-                    "removed_from_scheme": result.removed_from_scheme,
+                    "removed_from_nbs": result.removed_from_nbs,
                 }
                 layers = {}
                 for cat, tiles in categories.items():
