@@ -109,11 +109,11 @@ def _try_reopen_existing():
 
 
 def main():
+    multiprocessing.freeze_support()
+
     if _try_reopen_existing():
         _close_splash()
         sys.exit(0)
-
-    multiprocessing.freeze_support()
 
     try:
         if not _acquire_lock():

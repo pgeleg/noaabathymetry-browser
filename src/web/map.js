@@ -763,13 +763,6 @@ function buildPopupHtml(props) {
 // ── Age-based styling ────────────────────────────────
 
 var PALETTES = {
-    simple: {
-        colors: [[255,160,0],[50,210,110],[10,150,60],[70,165,230],[25,100,170],[125,105,80]],
-        null: [0,0,0],
-        days: [1, 7, 30, 180, 365, Infinity],
-        labels: ["\u2264 1 day", "\u2264 1 week", "\u2264 1 month", "\u2264 6 months", "\u2264 1 year", "> 1 year"],
-        opacity: [1.0, 0.97, 0.93, 0.9, 0.85, 0.8]
-    },
     magma: {
         colors: [[252,253,191],[254,180,123],[244,105,92],[171,51,124],[106,28,129],[41,17,90],[0,0,4]],
         null: [170,170,170]
@@ -785,13 +778,20 @@ var PALETTES = {
     slate: {
         colors: [[180,210,235],[130,170,210],[95,130,180],[70,95,150],[55,65,115],[40,40,80],[20,20,45]],
         null: [185,185,195]
+    },
+    simple: {
+        colors: [[255,160,0],[50,210,110],[10,150,60],[70,165,230],[25,100,170],[125,105,80]],
+        null: [0,0,0],
+        days: [1, 7, 30, 180, 365, Infinity],
+        labels: ["\u2264 1 day", "\u2264 1 week", "\u2264 1 month", "\u2264 6 months", "\u2264 1 year", "> 1 year"],
+        opacity: [1.0, 0.97, 0.93, 0.9, 0.85, 0.8]
     }
 };
 var DEFAULT_DAYS = [1, 7, 30, 90, 180, 365, Infinity];
 var DEFAULT_LABELS = ["\u2264 1 day", "\u2264 1 week", "\u2264 1 month", "\u2264 3 months", "\u2264 6 months", "\u2264 1 year", "> 1 year"];
 var DEFAULT_OPACITY = [1.0, 0.97, 0.93, 0.9, 0.87, 0.83, 0.8];
 var NULL_OPACITY = 0.65;
-var currentPalette = "simple";
+var currentPalette = "magma";
 var remoteFilled = true;
 var trackedFilled = true;
 
