@@ -712,16 +712,18 @@ button:disabled {
     white-space: nowrap;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5), 0 0 0 1px var(--map-overlay-border);
     border: none;
-    animation: slide-in-down 0.4s ease-out, slide-out-up 0.4s ease-in 3.6s forwards;
+    animation: slide-in-down 0.4s ease-out, slide-out-up 0.4s ease-in 5.6s forwards;
 }
 
 .toast-welcome {
+    pointer-events: auto;
     background: rgba(245, 243, 240, 0.7);
     backdrop-filter: blur(30px) saturate(1.5);
     -webkit-backdrop-filter: blur(30px) saturate(1.5);
     color: rgb(40, 40, 40);
     font-size: 12px;
-    padding: 12px 18px;
+    position: relative;
+    padding: 12px 28px 12px 18px;
     border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: 10px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.2);
@@ -732,7 +734,7 @@ button:disabled {
     align-items: flex-start;
     gap: 10px;
     text-align: left;
-    animation: slide-in-down 0.4s ease-out, slide-out-up 0.4s ease-in 5.6s forwards;
+    animation: slide-in-down 0.4s ease-out, slide-out-up 0.4s ease-in 19.6s forwards;
 }
 
 .welcome-icon {
@@ -751,6 +753,56 @@ button:disabled {
 .welcome-body {
     color: rgb(80, 80, 80);
     font-size: 12px;
+}
+
+.welcome-subtitle {
+    font-weight: 600;
+    font-size: 11px;
+    color: rgb(100, 100, 100);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.welcome-steps {
+    margin: 6px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.welcome-step-note {
+    font-size: 10px;
+    color: rgb(130, 130, 130);
+    margin-top: 1px;
+    font-style: italic;
+}
+
+.welcome-hint {
+    margin-top: 4px;
+    font-size: 11px;
+    color: rgb(120, 120, 120);
+    font-style: italic;
+}
+
+.toast-dismiss {
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    background: none;
+    border: none;
+    color: rgba(0, 0, 0, 0.2);
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 3px 5px;
+    border-radius: 4px;
+    transition: color 0.15s, background 0.15s, transform 0.15s;
+}
+
+.toast-dismiss:hover {
+    color: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.06);
+    transform: translateY(-1px);
 }
 
 @keyframes slide-in-down {
@@ -1248,6 +1300,39 @@ button:disabled {
     font-size: 10px;
     color: var(--map-overlay-fg-dim);
     font-style: italic;
+}
+
+.res-flyout-divider {
+    height: 1px;
+    background: var(--map-overlay-border);
+    margin: 4px 10px;
+}
+
+.cmap-flyout-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 12px;
+    font-size: 10px;
+    color: var(--map-overlay-fg-muted);
+    cursor: pointer;
+}
+
+.cmap-flyout-item:hover {
+    color: var(--map-overlay-fg);
+}
+
+.cmap-flyout-item.cmap-flyout-active {
+    color: var(--map-overlay-fg);
+    font-weight: 600;
+}
+
+.cmap-swatch {
+    display: inline-block;
+    width: 48px;
+    height: 10px;
+    border-radius: 3px;
+    flex-shrink: 0;
 }
 
 .layers-btn.layer-loading {

@@ -762,15 +762,36 @@ function buildPopupHtml(props) {
 
 // ── Age-based styling ────────────────────────────────
 
-var AGE_COLORS = [
-    { days: 1,    color: [74, 222, 128] },
-    { days: 7,    color: [34, 160, 70] },
-    { days: 30,   color: [130, 190, 255] },
-    { days: 120,  color: [25, 70, 170] },
-    { days: 365,  color: [130, 130, 140] },
-    { days: Infinity, color: [90, 90, 98] }
-];
-var NULL_DATE_COLOR = [30, 30, 30];
+var PALETTES = {
+    simple: {
+        colors: [[255,160,0],[50,210,110],[10,150,60],[70,165,230],[25,100,170],[125,105,80]],
+        null: [0,0,0],
+        days: [1, 7, 30, 180, 365, Infinity],
+        labels: ["\u2264 1 day", "\u2264 1 week", "\u2264 1 month", "\u2264 6 months", "\u2264 1 year", "> 1 year"],
+        opacity: [1.0, 0.97, 0.93, 0.9, 0.85, 0.8]
+    },
+    inferno: {
+        colors: [[252,253,191],[254,180,123],[244,105,92],[171,51,124],[106,28,129],[41,17,90],[0,0,4]],
+        null: [170,170,170]
+    },
+    forest: {
+        colors: [[140,220,100],[90,185,65],[50,145,40],[30,110,55],[20,80,45],[12,55,30],[5,30,15]],
+        null: [170,170,170]
+    },
+    ice: {
+        colors: [[230,255,255],[170,230,240],[110,200,230],[60,155,210],[30,105,175],[15,60,120],[5,25,60]],
+        null: [190,195,200]
+    },
+    slate: {
+        colors: [[180,210,235],[130,170,210],[95,130,180],[70,95,150],[55,65,115],[40,40,80],[20,20,45]],
+        null: [185,185,195]
+    }
+};
+var DEFAULT_DAYS = [1, 7, 30, 90, 180, 365, Infinity];
+var DEFAULT_LABELS = ["\u2264 1 day", "\u2264 1 week", "\u2264 1 month", "\u2264 3 months", "\u2264 6 months", "\u2264 1 year", "> 1 year"];
+var DEFAULT_OPACITY = [1.0, 0.97, 0.93, 0.9, 0.87, 0.83, 0.8];
+var NULL_OPACITY = 0.65;
+var currentPalette = "simple";
 var remoteFilled = true;
 var trackedFilled = true;
 
@@ -779,22 +800,26 @@ function getDateField(props) {
 }
 
 function ageColor(props) {
+    var pal = PALETTES[currentPalette];
+    var days = pal.days || DEFAULT_DAYS;
+    var opacity = pal.opacity || DEFAULT_OPACITY;
     var dateStr = getDateField(props);
-    if (!dateStr) return NULL_DATE_COLOR;
+    if (!dateStr) return { color: pal.null, opacity: NULL_OPACITY };
     var date = new Date(dateStr);
-    if (isNaN(date.getTime())) return NULL_DATE_COLOR;
+    if (isNaN(date.getTime())) return { color: pal.null, opacity: NULL_OPACITY };
     var ageDays = (Date.now() - date.getTime()) / 86400000;
-    for (var i = 0; i < AGE_COLORS.length; i++) {
-        if (ageDays <= AGE_COLORS[i].days) return AGE_COLORS[i].color;
+    for (var i = 0; i < days.length; i++) {
+        if (ageDays <= days[i]) return { color: pal.colors[i], opacity: opacity[i] };
     }
-    return AGE_COLORS[AGE_COLORS.length - 1].color;
+    return { color: pal.colors[pal.colors.length - 1], opacity: opacity[opacity.length - 1] };
 }
 
 function colorFeatures(geojson) {
     if (!geojson || !geojson.features) return geojson;
     geojson.features.forEach(function (f) {
-        var c = ageColor(f.properties);
-        f.properties._color = "rgb(" + c[0] + "," + c[1] + "," + c[2] + ")";
+        var a = ageColor(f.properties);
+        f.properties._color = "rgb(" + a.color[0] + "," + a.color[1] + "," + a.color[2] + ")";
+        f.properties._opacity = a.opacity;
     });
     return geojson;
 }
@@ -809,7 +834,7 @@ var TRACKED_COLORS = {
 function toggleRemoteFill() {
     remoteFilled = !remoteFilled;
     document.getElementById("btn-remote-fill").classList.toggle("fill-on", remoteFilled);
-    if (map.getLayer("remote-fill")) map.setPaintProperty("remote-fill", "fill-opacity", remoteFilled ? 0.8 : 0);
+    if (map.getLayer("remote-fill")) map.setPaintProperty("remote-fill", "fill-opacity", remoteFilled ? ["get", "_opacity"] : 0);
 }
 
 function toggleTrackedFill() {
@@ -884,6 +909,20 @@ function closeResFlyouts() {
     document.querySelectorAll(".layers-res-btn").forEach(function (b) { b.classList.remove("res-btn-active"); });
 }
 
+function setColormap(name) {
+    currentPalette = name;
+    if (remoteActive && remoteDisplayData) {
+        colorFeatures(remoteDisplayData);
+        addRemoteToMap(remoteDisplayData);
+    }
+    updateLegend();
+    // Update active state in flyout
+    var items = document.querySelectorAll("#res-flyout-remote .cmap-flyout-item");
+    items.forEach(function (el) {
+        el.classList.toggle("cmap-flyout-active", el.textContent.toLowerCase() === name);
+    });
+}
+
 function reconcileResFilter(filterState, oldAvail, newAvail) {
     if (!filterState) return null;
     // New resolutions default to visible
@@ -943,7 +982,7 @@ function toggleResFlyout(layer, btn) {
     }
     var title = layer === "remote" ? "NBS Source" : "Your Project";
     var html = '<div class="res-flyout-title">' + title + '</div>' +
-        '<div class="res-flyout-header">Visibility by Resolution</div>';
+        '<div class="res-flyout-header">Resolution</div>';
     resList.forEach(function (r) {
         var checked = !filterState || filterState.resolutions.has(r);
         html += '<label class="res-flyout-item"><input type="checkbox" ' + (checked ? "checked" : "") +
@@ -953,6 +992,22 @@ function toggleResFlyout(layer, btn) {
         var nullChecked = !filterState || filterState.includeNull;
         html += '<label class="res-flyout-item"><input type="checkbox" ' + (nullChecked ? "checked" : "") +
             ' onchange="toggleResolution(\'' + layer + '\',null,true,this.checked)"> No resolution</label>';
+    }
+    if (layer === "remote") {
+        html += '<div class="res-flyout-divider"></div>';
+        html += '<div class="res-flyout-header">Color Map</div>';
+        var names = Object.keys(PALETTES);
+        names.forEach(function (name) {
+            var pal = PALETTES[name];
+            var stops = pal.colors.map(function (c, i) {
+                return "rgb(" + c[0] + "," + c[1] + "," + c[2] + ") " + Math.round(i / (pal.colors.length - 1) * 100) + "%";
+            }).join(",");
+            var active = name === currentPalette ? " cmap-flyout-active" : "";
+            var label = name.charAt(0).toUpperCase() + name.slice(1);
+            html += '<div class="cmap-flyout-item' + active + '" onclick="setColormap(\'' + name + '\')">' +
+                '<span class="cmap-swatch" style="background:linear-gradient(to right,' + stops + ')"></span>' +
+                label + '</div>';
+        });
     }
     flyout.innerHTML = html;
     flyout.style.display = "block";
@@ -991,8 +1046,8 @@ function addRemoteToMap(geojson) {
         map.getSource("remote").setData(geojson);
     } else {
         map.addSource("remote", { type: "geojson", data: geojson });
-        map.addLayer({ id: "remote-fill", type: "fill", source: "remote", paint: { "fill-color": ["get", "_color"], "fill-opacity": remoteFilled ? 0.8 : 0 } });
-        map.addLayer({ id: "remote-outline", type: "line", source: "remote", paint: { "line-color": ["get", "_color"], "line-width": 1, "line-opacity": 0.7 } });
+        map.addLayer({ id: "remote-fill", type: "fill", source: "remote", paint: { "fill-color": ["get", "_color"], "fill-opacity": remoteFilled ? ["get", "_opacity"] : 0 } });
+        map.addLayer({ id: "remote-outline", type: "line", source: "remote", paint: { "line-color": "rgba(0,0,0,0.3)", "line-width": 1 } });
     }
     var oldAvail = remoteAvailableRes;
     remoteAvailableRes = extractResolutions(geojson);
@@ -1091,6 +1146,7 @@ map.on("click", function (e) {
     }
     var props = Object.assign({}, best.properties);
     delete props._color;
+    delete props._opacity;
     var html = buildPopupHtml(props);
     if (html) popup.setLngLat(e.lngLat).setHTML(html).addTo(map);
 });
@@ -1266,12 +1322,13 @@ function buildLegendHtml() {
     if (remoteActive) {
         html += "<div class='legend-section'>NBS " + escapeHtml(remoteSourceLabel || "Source") + "</div>";
         html += "<div class='legend-subtitle'>Last Delivered</div>";
-        var labels = ["< 1 day", "< 1 week", "< 1 month", "< 4 months", "< 12 months", "12+ months"];
-        for (var i = 0; i < AGE_COLORS.length; i++) {
-            var c = AGE_COLORS[i].color;
+        var pal = PALETTES[currentPalette];
+        var labels = pal.labels || DEFAULT_LABELS;
+        for (var i = 0; i < pal.colors.length; i++) {
+            var c = pal.colors[i];
             html += "<div class='legend-row'><span class='legend-swatch' style='background:rgb(" + c[0] + "," + c[1] + "," + c[2] + ")'></span>" + labels[i] + "</div>";
         }
-        html += "<div class='legend-row'><span class='legend-swatch' style='background:rgb(" + NULL_DATE_COLOR[0] + "," + NULL_DATE_COLOR[1] + "," + NULL_DATE_COLOR[2] + ");border:1px solid rgba(255,255,255,0.15)'></span>No delivery</div>";
+        html += "<div class='legend-row'><span class='legend-swatch' style='background:rgb(" + pal.null[0] + "," + pal.null[1] + "," + pal.null[2] + ");border:1px solid rgba(255,255,255,0.15)'></span>No delivery</div>";
     }
     if (trackedActive) {
         if (html) html += "<div class='legend-divider'></div>";

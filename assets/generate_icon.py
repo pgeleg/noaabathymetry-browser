@@ -4,13 +4,8 @@ import sys
 from PIL import Image, ImageDraw, ImageFont
 
 
-def make_icon_frame(logo, size, fill_bg=False):
-    scaled = logo.resize((size, size), Image.LANCZOS)
-    if fill_bg:
-        frame = Image.new("RGBA", (size, size), (10, 25, 50, 255))
-        frame.paste(scaled, (0, 0), mask=scaled)
-    else:
-        frame = scaled
+def make_icon_frame(logo, size):
+    frame = logo.resize((size, size), Image.LANCZOS)
     if size < 48:
         return frame
 
@@ -59,7 +54,7 @@ def make_icon_frame(logo, size, fill_bg=False):
 
 
 def main():
-    logo = Image.open("assets/NOAA-2.png").convert("RGBA")
+    logo = Image.open("assets/NOAA-1.png").convert("RGBA")
     fmt = sys.argv[1] if len(sys.argv) > 1 else "ico"
 
     if fmt == "ico":
@@ -87,7 +82,7 @@ def main():
             (1024, "icon_512x512@2x.png"),
         ]
         for size, name in specs:
-            frame = make_icon_frame(logo, size, fill_bg=True)
+            frame = make_icon_frame(logo, size)
             frame.save(f"assets/NOAA.iconset/{name}")
         subprocess.run(["iconutil", "-c", "icns", "assets/NOAA.iconset",
                          "-o", "assets/NOAA.icns"], check=True)

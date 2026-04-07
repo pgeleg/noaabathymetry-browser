@@ -21,6 +21,8 @@ function _onBridgeReady() {
             if (basemap) setBasemapByName(basemap);
             trackedStartup = true;
             toggleTrackedLayer();
+        } else {
+            showToast({ icon: "👋", title: "Welcome", body: "<span class='welcome-subtitle'>Get started</span><div class='welcome-steps'><div>1. Enter a project directory<div class='welcome-step-note'>Don't worry, we'll create it if it doesn't exist yet.</div></div><div>2. Draw your area of interest</div><div>3. Click Fetch to download tiles</div></div><div class='welcome-hint'>Hint: Turn on the NBS Source layer in the bottom left to see NBS offerings.</div>", duration: 120000 }, "toast-welcome");
         }
     });
 }
@@ -316,13 +318,26 @@ function showToast(msg, cls) {
     var toast = document.createElement("div");
     toast.className = "toast" + (cls ? " " + cls : "");
     if (cls === "toast-welcome" && typeof msg === "object") {
-        toast.innerHTML = '<span class="welcome-icon">' + msg.icon + '</span><div><div class="welcome-title">' + msg.title + '</div><div class="welcome-body">' + msg.body + '</div></div>';
+        toast.innerHTML = '<span class="welcome-icon">' + msg.icon + '</span><div><div class="welcome-title">' + msg.title + '</div><div class="welcome-body">' + msg.body + '</div></div>' +
+            '<button class="toast-dismiss" onclick="dismissToast(this)">&#x2303;</button>';
     } else {
         toast.textContent = msg;
     }
+    if (cls === "toast-welcome" && msg.duration) {
+        toast.style.animation = "slide-in-down 0.4s ease-out, slide-out-up 0.4s ease-in " + (msg.duration / 1000 - 0.4) + "s forwards";
+    }
     container.insertBefore(toast, container.firstChild);
-    var duration = cls === "toast-welcome" ? 6000 : 4000;
+    var duration = (cls === "toast-welcome" && msg.duration) ? msg.duration : (cls === "toast-welcome" ? 20000 : 6000);
     setTimeout(function () { toast.remove(); }, duration);
+}
+
+function dismissToast(btn) {
+    var toast = btn.closest(".toast-welcome");
+    if (!toast) return;
+    toast.style.animation = "none";
+    void toast.offsetWidth;
+    toast.style.animation = "slide-out-up 0.4s ease-in forwards";
+    setTimeout(function () { toast.remove(); }, 400);
 }
 
 function setStatus(left) {
