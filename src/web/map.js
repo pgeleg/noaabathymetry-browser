@@ -92,6 +92,13 @@ var DrawControl = {
 };
 map.addControl(DrawControl, "top-left");
 
+var finishBtn = document.createElement("button");
+finishBtn.id = "draw-finish-btn";
+finishBtn.className = "draw-finish-btn";
+finishBtn.textContent = "Finish";
+finishBtn.onclick = function () { finishDrawing(); };
+document.getElementById("map").appendChild(finishBtn);
+
 function startDrawing() {
     if (drawingMode) {
         finishDrawing();
@@ -104,6 +111,7 @@ function startDrawing() {
     map.doubleClickZoom.disable();
     map.getCanvas().style.setProperty("cursor", "crosshair", "important");
     document.getElementById("draw-polygon-btn").classList.add("active");
+    document.getElementById("draw-finish-btn").classList.add("visible");
     // Clear previous
     if (map.getSource("draw-polygon")) map.getSource("draw-polygon").setData({ type: "FeatureCollection", features: [] });
     if (map.getSource("draw-points")) map.getSource("draw-points").setData({ type: "FeatureCollection", features: [] });
@@ -115,6 +123,17 @@ function finishDrawing() {
     map.doubleClickZoom.enable();
     map.getCanvas().style.setProperty("cursor", "", "");
     document.getElementById("draw-polygon-btn").classList.remove("active");
+    var finishEl = document.getElementById("draw-finish-btn");
+    if (drawPoints.length >= 3) {
+        finishEl.textContent = "✓";
+        finishEl.classList.add("success");
+        setTimeout(function () {
+            finishEl.classList.remove("visible", "success");
+            finishEl.textContent = "Finish";
+        }, 500);
+    } else {
+        finishEl.classList.remove("visible");
+    }
     if (drawPoints.length >= 3) {
         var coords = drawPoints.slice();
         coords.push(coords[0]); // close the ring
@@ -136,6 +155,7 @@ function clearDrawing() {
     map.getCanvas().style.setProperty("cursor", "", "");
     document.getElementById("draw-polygon-btn").classList.remove("active");
     document.getElementById("draw-rect-btn").classList.remove("active");
+    document.getElementById("draw-finish-btn").classList.remove("visible");
     document.getElementById("opt-geometry").value = "";
     if (map.getSource("draw-polygon")) map.getSource("draw-polygon").setData({ type: "FeatureCollection", features: [] });
     if (map.getSource("draw-points")) map.getSource("draw-points").setData({ type: "FeatureCollection", features: [] });

@@ -880,6 +880,46 @@ button:disabled {
     color: rgb(50,80,200) !important;
 }
 
+.draw-finish-btn {
+    display: none;
+    position: absolute;
+    top: 82px;
+    left: 41px;
+    padding: 4px 14px;
+    border: none;
+    border-radius: 0 14px 14px 0;
+    background: rgb(50,80,200);
+    color: white;
+    font-size: 11px;
+    font-family: var(--font-ui);
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    transition: background 0.15s;
+    z-index: 0;
+}
+
+.draw-finish-btn.visible {
+    display: block;
+}
+
+.draw-finish-btn.success {
+    animation: finish-flash 0.5s ease-out forwards;
+}
+
+@keyframes finish-flash {
+    0% { background: rgb(34,197,94); max-width: 80px; padding: 4px 14px; opacity: 1; transform: scale(1); }
+    15% { transform: scale(1.12); }
+    30% { transform: scale(1); }
+    50% { background: rgb(34,197,94); max-width: 80px; padding: 4px 14px; opacity: 1; }
+    100% { max-width: 0; padding: 4px 0; opacity: 0; overflow: hidden; }
+}
+
+.draw-finish-btn:hover {
+    background: rgb(40,65,170);
+}
+
 .map-toolbar {
     background: white;
     border-radius: 4px;
