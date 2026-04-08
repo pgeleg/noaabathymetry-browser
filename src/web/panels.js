@@ -84,6 +84,7 @@ function setSource(value) {
             item.classList.remove("selected");
         }
     });
+    updateMosaicToggle();
 }
 
 var lastCommittedDir = "";
@@ -278,6 +279,7 @@ function pickSource(el) {
     });
     toggleSourceDropdown();
     glowElement(document.getElementById("source-select"));
+    updateMosaicToggle();
     refreshAllLayers();
 }
 
@@ -643,6 +645,32 @@ function runMosaic() {
     runCommand("mosaic", function (dir) {
         bridge.mosaic(dir, getSource(), getMosaicOptions());
     });
+}
+
+var S102_NO_MOSAIC = ["s102v22", "s102v30"];
+
+function toggleExportMosaics() {
+    var source = getSource();
+    if (S102_NO_MOSAIC.indexOf(source) >= 0) {
+        showToast("Exporting mosaics is not supported for this data source.");
+        return;
+    }
+    document.getElementById("opt-export-mosaics").classList.toggle("on");
+}
+
+function updateMosaicToggle() {
+    var source = getSource();
+    var el = document.getElementById("opt-export-mosaics");
+    var label = el.closest(".switch-label");
+    if (S102_NO_MOSAIC.indexOf(source) >= 0) {
+        el.classList.remove("on");
+        label.classList.add("disabled");
+    } else {
+        if (label.classList.contains("disabled")) {
+            el.classList.add("on");
+        }
+        label.classList.remove("disabled");
+    }
 }
 
 function runExport() {

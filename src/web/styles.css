@@ -1559,6 +1559,11 @@ button:disabled {
     color: var(--bar-fg);
 }
 
+.switch-label.disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
 
 .switch {
     width: 28px;
