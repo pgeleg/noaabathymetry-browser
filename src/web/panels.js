@@ -22,7 +22,7 @@ function _onBridgeReady() {
             trackedStartup = true;
             toggleTrackedLayer();
         } else {
-            showToast({ icon: "👋", title: "Welcome", body: "<span class='welcome-subtitle'>Get started</span><div class='welcome-steps'><div>1. Enter a project directory<div class='welcome-step-note'>Don't worry, we'll create it if it doesn't exist yet.</div></div><div>2. Draw your area of interest</div><div>3. Click Fetch to download tiles</div></div><div class='welcome-hint'>Hint: Turn on the NBS Source layer in the bottom left to see NBS offerings.</div>", duration: 120000 }, "toast-welcome");
+            showToast({ icon: "▸", title: "Welcome", body: "<span class='welcome-subtitle'>Get started</span><div class='welcome-steps'><div>1. Enter a project directory<div class='welcome-step-note'>(We'll create it if it doesn't exist yet.)</div></div><div>2. Draw your area of interest</div><div>3. Click Fetch to download tiles</div></div><div class='welcome-hint'>Hint: Turn on the NBS Source layer in the bottom left to see NBS offerings.</div>", duration: 120000 }, "toast-welcome");
         }
     });
 }

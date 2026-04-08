@@ -318,6 +318,15 @@ map.on("click", function (e) {
     }
     drawPoints.push(pt);
     updateDrawLayer();
+    if (drawPoints.length >= 3) {
+        var coords = drawPoints.slice();
+        coords.push(coords[0]);
+        var geom = { type: "Polygon", coordinates: [coords] };
+        currentGeometry = JSON.stringify(geom);
+        var input = document.getElementById("opt-geometry");
+        input.value = currentGeometry;
+        input.scrollLeft = input.scrollWidth;
+    }
 });
 
 map.on("dblclick", function (e) {
