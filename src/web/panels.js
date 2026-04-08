@@ -22,7 +22,7 @@ function _onBridgeReady() {
             trackedStartup = true;
             toggleTrackedLayer();
         } else {
-            showToast({ icon: "▸", title: "Welcome", body: "<span class='welcome-subtitle'>Get started</span><div class='welcome-steps'><div>1. Enter a project directory<div class='welcome-step-note'>(We'll create it if it doesn't exist yet.)</div></div><div>2. Draw your area of interest</div><div>3. Click Fetch to download tiles</div></div><div class='welcome-hint'>Hint: Turn on the NBS Source layer in the bottom left to see NBS offerings.</div>", duration: 120000 }, "toast-welcome");
+            showToast({ icon: "▸", title: "Welcome", body: "<span class='welcome-subtitle'>Get started (hover the steps for help)</span><div class='welcome-steps'><div class='welcome-step' data-highlight='dir-input-wrap'>1. Type the folder path where you'd like your tiles<div class='welcome-step-note'>(e.g. ~/nyc. Fetch will create the folder for you if it doesn't exist.)</div></div><div class='welcome-step' data-highlight='draw-ctrl'>2. Draw your area of interest</div><div class='welcome-step' data-highlight='btn-fetch'>3. Click Fetch to download tiles</div></div><div class='welcome-hint' data-highlight='nbs-source'>Hint: Turn on the NBS Source layer in the bottom left to see NBS offerings.</div>", duration: 180000 }, "toast-welcome");
         }
     });
 }
@@ -329,8 +329,33 @@ function showToast(msg, cls) {
         toast.style.animation = "slide-in-down 0.4s ease-out, slide-out-up 0.4s ease-in " + (msg.duration / 1000 - 0.4) + "s forwards";
     }
     container.insertBefore(toast, container.firstChild);
+    // Wire up hover highlights for steps and hint
+    var highlightEls = toast.querySelectorAll("[data-highlight]");
+    highlightEls.forEach(function (el) {
+        el.addEventListener("mouseenter", function () {
+            var target = _resolveHighlight(el.getAttribute("data-highlight"));
+            if (target) target.classList.add("highlight-guide");
+        });
+        el.addEventListener("mouseleave", function () {
+            var target = _resolveHighlight(el.getAttribute("data-highlight"));
+            if (target) target.classList.remove("highlight-guide");
+        });
+    });
     var duration = (cls === "toast-welcome" && msg.duration) ? msg.duration : (cls === "toast-welcome" ? 20000 : 6000);
     setTimeout(function () { toast.remove(); }, duration);
+}
+
+function _resolveHighlight(id) {
+    if (id === "dir-input-wrap") return document.querySelector(".dir-input-wrap");
+    if (id === "draw-ctrl") {
+        var btn = document.getElementById("draw-polygon-btn");
+        return btn ? btn.closest(".maplibregl-ctrl-group") : null;
+    }
+    if (id === "nbs-source") {
+        var rb = document.getElementById("btn-layer-remote");
+        return rb ? rb.closest(".layers-item") : null;
+    }
+    return document.getElementById(id);
 }
 
 function dismissToast(btn) {

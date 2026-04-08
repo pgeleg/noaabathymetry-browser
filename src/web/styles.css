@@ -327,6 +327,15 @@ input:focus, select:focus {
     100% { box-shadow: none; }
 }
 
+.highlight-guide {
+    animation: guide-pulse 1s ease-in-out infinite;
+}
+
+@keyframes guide-pulse {
+    0%, 100% { box-shadow: 0 0 0 2px rgba(100, 140, 255, 0.5), 0 0 8px 2px rgba(100, 140, 255, 0.2); }
+    50% { box-shadow: 0 0 0 3px rgba(100, 140, 255, 0.8), 0 0 16px 4px rgba(100, 140, 255, 0.4); }
+}
+
 /* ── Buttons ─────────────────────────────────────── */
 
 /* Top bar buttons (Open, etc. — not icon buttons) */
@@ -728,7 +737,7 @@ button:disabled {
     border-radius: 10px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.2);
     white-space: normal;
-    max-width: 320px;
+    max-width: 400px;
     line-height: 1.4;
     display: flex;
     align-items: flex-start;
@@ -770,6 +779,18 @@ button:disabled {
     gap: 3px;
 }
 
+.welcome-step {
+    cursor: default;
+    border-radius: 4px;
+    padding: 1px 4px;
+    margin: -1px -4px;
+    transition: background 0.15s;
+}
+
+.welcome-step:hover {
+    background: rgba(0, 0, 0, 0.05);
+}
+
 .welcome-step-note {
     font-size: 10px;
     color: rgb(130, 130, 130);
@@ -782,6 +803,15 @@ button:disabled {
     font-size: 11px;
     color: rgb(120, 120, 120);
     font-style: italic;
+    border-radius: 4px;
+    padding: 2px 4px;
+    margin-left: -4px;
+    margin-right: -4px;
+    transition: background 0.15s;
+}
+
+.welcome-hint:hover {
+    background: rgba(0, 0, 0, 0.05);
 }
 
 .toast-dismiss {
