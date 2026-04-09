@@ -664,6 +664,9 @@ function _checkUpdatesOnStartup() {
         if (_cachedUpdates.ui.update_available || _cachedUpdates.library.update_available) {
             document.getElementById("toolbar-version").classList.add("version-has-update");
         }
+        if (_cachedUpdates.ui.update_available) {
+            showToast({ icon: "↑", title: "Update Available", body: "noaabathymetry-ui v" + _cachedUpdates.ui.latest + " is available. <a href='https://github.com/noaa-ocs-hydrography/noaabathymetry-ui/releases' target='_blank' style='color:var(--accent)'>View release</a>" }, "toast-welcome");
+        }
         // Refresh menu if it's currently open
         var menu = document.getElementById("version-menu");
         if (menu && menu.style.display === "block" && _cachedVersions) {

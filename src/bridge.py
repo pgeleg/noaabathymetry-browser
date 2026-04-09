@@ -533,7 +533,7 @@ class Bridge:
             return None
 
     def open_folder(self, path):
-        path = os.path.expanduser(path)
+        path = os.path.realpath(os.path.expanduser(path))
         if not os.path.isdir(path):
             return False
         import subprocess
