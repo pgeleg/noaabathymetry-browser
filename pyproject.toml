@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "noaabathymetry-ui"
 version = "0.1.0"
 requires-python = ">=3.10"
-description = "Browser-based GUI for noaabathymetry"
+description = "Browser-based interface for noaabathymetry"
 dependencies = [
     "noaabathymetry==0.8.1",
     "aiohttp==3.13.5",
