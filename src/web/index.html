@@ -50,12 +50,13 @@
         </div>
     </div>
 
-    <div id="log-header" onclick="toggleLog()">
+    <div id="log-header" onclick="toggleLog()" title="Click to show output">
         <div class="log-dot" id="log-dot"></div>
         <span>Output</span>
         <span class="log-command" id="log-command"></span>
+        <span class="log-hide-hint" id="log-hide-hint">(click to hide)</span>
         <span class="bar-coords" id="bar-coords"></span>
-        <span class="log-grip"></span>
+        <span class="log-chevron" id="log-chevron"><span class="chev">›››</span><span class="chev">›››</span><span class="chev">›››</span></span>
     </div>
     <div id="log-pane">
         <pre id="results"></pre>
@@ -65,45 +66,43 @@
         <div class="command-left">
             <div class="command-bars">
                 <div class="commandbar" id="fetchbar">
-                    <button id="btn-fetch" class="command-btn" onclick="runFetch()" title="Download tiles from NBS to your project folder.">Fetch</button>
-                    <div class="commandbar-field" style="position:relative;">
+                    <button id="btn-fetch" class="command-btn" onclick="runFetch()" data-title="Fetch" data-tooltip="Download tiles from NBS to your project folder.">Fetch</button>
+                    <div class="commandbar-field" style="position:relative;" data-title="Geometry" data-tooltip="Define your area of interest. Draw a shape on the map, enter a geometry string (GeoJSON, WKT, or bounding box), or provide a path to a geometry file.">
                         <span>Geometry</span>
-                        <input type="text" id="opt-geometry" placeholder="draw on map, or path / geojson / WKT / bbox" oninput="onGeomInput()" autocomplete="off">
+                        <input type="text" id="opt-geometry" placeholder="your area of interest" oninput="onGeomInput()" autocomplete="off">
                         <button class="browse-btn" onclick="browseGeometry()" title="Browse for geometry file">…</button>
                         <div id="geom-suggestions" class="suggestions"></div>
                     </div>
-                    <div class="commandbar-field">
+                    <div class="commandbar-field" data-title="Only Resolution(s)" data-tooltip="Fetch only tiles matching these resolutions in meters. Leave blank to fetch all resolutions. Accepts comma separated values e.g. 4,8.">
                         <span>Only Resolution(s)</span>
                         <input type="text" id="opt-fetch-resolution" placeholder="e.g. 4,8 (meters)">
                     </div>
                 </div>
                 <div class="commandbar" id="mosaicbar">
-                    <button id="btn-mosaic" class="command-btn" onclick="runMosaic()" title="Build per-UTM-zone mosaics from your downloaded tiles.">Mosaic</button>
-                    <label class="switch-label" onclick="document.getElementById('opt-hillshade').classList.toggle('on')">
-                        Hillshade
+                    <button id="btn-mosaic" class="command-btn" onclick="runMosaic()" data-title="Mosaic" data-tooltip="Build per-UTM-zone mosaics from your downloaded tiles.">Mosaic</button>
+                    <label class="switch-label" onclick="document.getElementById('opt-hillshade').classList.toggle('on')" data-title="Hillshade" data-tooltip="Generate a 16m hillshade overlay from the mosaic for terrain visualization.">
+                        <span>Hillshade</span>
                         <span class="switch" id="opt-hillshade"><span class="switch-knob"></span></span>
                     </label>
-                    <div class="commandbar-field">
+                    <div class="commandbar-field" data-title="Resolution" data-tooltip="Auto selects the finest resolution among your downloaded tiles. Enter a value in meters to override.">
                         <span>Resolution</span>
                         <input type="text" id="opt-resolution" placeholder="auto" inputmode="numeric">
                     </div>
-                    <div class="commandbar-field">
+                    <div class="commandbar-field" data-title="Workers" data-tooltip="Build UTM zones in parallel. One worker per zone. Additional workers beyond your zone count have no effect. Each worker adds to memory usage, so consider your system resources.">
                         <span>Workers</span>
                         <input type="text" id="opt-workers" placeholder="auto" inputmode="numeric" maxlength="2">
                     </div>
-                    <span class="commandbar-disclaimer"><strong>Disclaimer:</strong> More workers increase memory usage.<br>Mosaics require significant disk space.</span>
                 </div>
                 <div class="commandbar" id="exportbar">
-                    <button id="btn-export" class="command-btn" onclick="runExport()" title="Validate then package your project into a portable zip. Recipients can use the files directly and even continue the project themselves if they wish, picking up where you left off.">Export</button>
-                    <label class="switch-label" onclick="toggleExportMosaics()">
-                        Include Mosaics
+                    <button id="btn-export" class="command-btn" onclick="runExport()" data-title="Export" data-tooltip="Verifies your data, then packages your project into a portable zip. Recipients can use the files directly and even continue the project themselves, picking up where you left off.">Export</button>
+                    <label class="switch-label" onclick="toggleExportMosaics()" data-title="Include Mosaics" data-tooltip="Include the built mosaics in the export zip.">
+                        <span>Include Mosaics</span>
                         <span class="switch on" id="opt-export-mosaics"><span class="switch-knob"></span></span>
                     </label>
-                    <label class="switch-label" onclick="document.getElementById('opt-export-repair').classList.toggle('on')" title="If verification finds tiles with mismatched checksums, flag them so the next Fetch re-downloads them">
-                        Flag for Repair
+                    <label class="switch-label" onclick="document.getElementById('opt-export-repair').classList.toggle('on')" data-title="Flag for Repair" data-tooltip="If verification finds downloaded tiles with mismatched checksums compared to NBS, flag them so the next Fetch re-downloads them.">
+                        <span>Flag for Repair</span>
                         <span class="switch" id="opt-export-repair"><span class="switch-knob"></span></span>
                     </label>
-                    <span class="commandbar-disclaimer"><strong>Flag for Repair:</strong> If checksums mismatch,<br>flag tiles so the next Fetch re-downloads them.</span>
                 </div>
             </div>
             <div id="statusbar">
@@ -117,6 +116,7 @@
     </div>
 
     <div id="toast-container"></div>
+    <div id="field-tooltip"></div>
 
     <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
     <script src="/static/bridge-ws.js"></script>

@@ -21,10 +21,13 @@ function _onBridgeReady() {
             var basemap = recent.basemap;
             if (basemap) setBasemapByName(basemap);
             trackedStartup = true;
+            _isReturningUser = true;
             toggleTrackedLayer();
         } else {
             showToast({ icon: "▸", title: "Welcome", body: "<span class='welcome-subtitle'>Get started (hover the steps for help)</span><div class='welcome-steps'><div class='welcome-step' data-highlight='dir-input-wrap'>1. Type the folder path where you'd like your tiles<div class='welcome-step-note'>(e.g. ~/nyc. Fetch will create the folder for you if it doesn't exist.)</div></div><div class='welcome-step' data-highlight='draw-ctrl'>2. Draw your area of interest</div><div class='welcome-step' data-highlight='btn-fetch'>3. Click Fetch to download tiles</div></div><div class='welcome-hint' data-highlight='nbs-source'>Hint: Turn on the NBS Source layer in the bottom left to see NBS offerings.</div>", duration: 180000 }, "toast-welcome");
         }
+        _recentsLoaded = true;
+        _maybeShowUpdateToast();
     });
 }
 
@@ -259,6 +262,50 @@ function updateOpenFolderBtn() {
     btn.style.display = lastCommittedDir ? "" : "none";
 }
 
+// ── Field info tooltip ────────────────────────────────
+
+var fieldTooltipActive = null;
+
+function _renderFieldTooltip(container) {
+    var tooltip = document.getElementById("field-tooltip");
+    var title = container.getAttribute("data-title") || "";
+    var body = container.getAttribute("data-tooltip") || "";
+    var isCmd = container.classList.contains("command-btn");
+    var isBusy = isCmd && container.disabled;
+    tooltip.className = isCmd ? (isBusy ? "command-tooltip command-tooltip-busy" : "command-tooltip") : "";
+    tooltip.innerHTML = (isCmd ? "<div class='field-tooltip-category'>Command</div>" : "") +
+                        (title ? "<div class='field-tooltip-title'>" + title + "</div>" : "") +
+                        "<div class='field-tooltip-body'>" + (isBusy ? "A command is already running…" : body) + "</div>" +
+                        (isCmd && !isBusy ? "<div class='field-tooltip-action'>Click to run</div>" : "");
+    tooltip.style.display = "block";
+    tooltip.style.transform = "translateX(-50%)";
+    var rect = container.getBoundingClientRect();
+    var tRect = tooltip.getBoundingClientRect();
+    var left = rect.left + rect.width / 2;
+    left = Math.max(tRect.width / 2 + 6, Math.min(window.innerWidth - tRect.width / 2 - 6, left));
+    tooltip.style.left = left + "px";
+    tooltip.style.bottom = (window.innerHeight - rect.top + 8) + "px";
+    tooltip.style.top = "auto";
+}
+
+function refreshFieldTooltip() {
+    if (fieldTooltipActive) _renderFieldTooltip(fieldTooltipActive);
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+    document.querySelectorAll(".commandbar-field, .switch-label, .command-btn").forEach(function(container) {
+        if (!container.getAttribute("data-tooltip")) return;
+        container.addEventListener("mouseenter", function() {
+            fieldTooltipActive = container;
+            _renderFieldTooltip(container);
+        });
+        container.addEventListener("mouseleave", function() {
+            document.getElementById("field-tooltip").style.display = "none";
+            fieldTooltipActive = null;
+        });
+    });
+});
+
 // ── Custom data source dropdown ──────────────────────
 
 var sourceOpen = false;
@@ -266,6 +313,7 @@ var sourceOpen = false;
 function toggleSourceDropdown() {
     sourceOpen = !sourceOpen;
     document.getElementById("source-dropdown").style.display = sourceOpen ? "block" : "none";
+    document.getElementById("source-select").classList.toggle("open", sourceOpen);
 }
 
 function pickSource(el) {
@@ -290,6 +338,7 @@ document.addEventListener("click", function (e) {
         if (sourceOpen) {
             sourceOpen = false;
             document.getElementById("source-dropdown").style.display = "none";
+            document.getElementById("source-select").classList.remove("open");
         }
     }
 });
@@ -384,12 +433,24 @@ function showLog() {
     if (!logOpen) {
         logOpen = true;
         document.getElementById("log-pane").style.display = "block";
+        document.getElementById("log-chevron").style.transform = "translate(-50%, calc(-50% - 2px)) rotate(90deg)";
+        document.getElementById("log-header").title = "Click to hide output";
     }
+    var hint = document.getElementById("log-hide-hint");
+    if (hint) hint.style.display = "none";
 }
 
 function toggleLog() {
     logOpen = !logOpen;
     document.getElementById("log-pane").style.display = logOpen ? "block" : "none";
+    document.getElementById("log-chevron").style.transform = logOpen
+        ? "translate(-50%, calc(-50% - 2px)) rotate(90deg)"
+        : "translate(-50%, calc(-50% + 1px)) rotate(-90deg)";
+    document.getElementById("log-header").title = logOpen ? "Click to hide output" : "Click to show output";
+    var hint = document.getElementById("log-hide-hint");
+    if (hint && hint.style.display !== "none") {
+        hint.textContent = logOpen ? "(click to hide)" : "(click to show)";
+    }
 }
 
 function appendLog(line) {
@@ -468,6 +529,11 @@ function onCommandDone(data) {
         currentCommand = null;
         setButtonsDisabled(false);
         document.getElementById("log-command").textContent = doneLabel;
+        var hint = document.getElementById("log-hide-hint");
+        if (hint) {
+            hint.style.display = "inline";
+            hint.textContent = logOpen ? "(click to hide)" : "(click to show)";
+        }
     }
     // After currentCommand is cleared, refresh tracked layer
     if (fetched) {
@@ -490,14 +556,13 @@ function getSource() {
 
 function setButtonsDisabled(disabled) {
     var btns = ["btn-fetch", "btn-mosaic", "btn-export"];
-    var msg = disabled ? "Waiting for current task to finish" : "";
     btns.forEach(function (id) {
         var btn = document.getElementById(id);
         btn.disabled = disabled;
-        btn.title = msg;
     });
     var dot = document.getElementById("log-dot");
     if (dot) dot.classList.toggle("active", disabled);
+    refreshFieldTooltip();
 }
 
 function runCommand(name, fn) {

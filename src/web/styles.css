@@ -163,18 +163,33 @@ body {
     font-family: var(--font-ui);
 }
 
-.log-grip {
-    margin-left: auto;
-    width: 20px;
-    height: 10px;
-    background-image:
-        linear-gradient(rgba(255,255,255,0.3), rgba(255,255,255,0.3)),
-        linear-gradient(rgba(255,255,255,0.3), rgba(255,255,255,0.3)),
-        linear-gradient(rgba(255,255,255,0.3), rgba(255,255,255,0.3));
-    background-size: 100% 1.5px;
-    background-position: center 0, center 50%, center 100%;
-    background-repeat: no-repeat;
-    border-radius: 1px;
+#log-header .log-chevron {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, calc(-50% + 1px)) rotate(-90deg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0px;
+    text-transform: none;
+    color: rgba(255, 255, 255, 0.18);
+    transition: color 0.15s, transform 0.2s;
+}
+
+#log-header .log-chevron .chev {
+    font-size: 13px;
+    letter-spacing: -2px;
+    line-height: 0.7;
+    color: rgba(255, 255, 255, 0.15);
+}
+
+#log-header:hover .log-chevron .chev {
+    color: rgba(255, 255, 255, 0.25);
+}
+
+#log-header:hover > .log-chevron {
+    color: rgba(255, 255, 255, 0.3);
 }
 
 #log-header .log-dot {
@@ -199,7 +214,7 @@ body {
 
 .bar-coords {
     position: absolute;
-    right: 40px;
+    right: 12px;
     font-size: 10px;
     font-family: var(--font-mono);
     color: rgba(255, 255, 255, 0.35);
@@ -212,6 +227,18 @@ body {
     font-weight: 400;
     letter-spacing: 0;
     text-transform: none;
+}
+
+#log-header .log-hide-hint {
+    display: none;
+    font-size: 10px;
+    color: var(--fg-dim);
+    opacity: 0.4;
+    margin-left: 6px;
+    flex-shrink: 0;
+    text-transform: none;
+    letter-spacing: 0;
+    font-weight: 400;
 }
 
 #log-pane {
@@ -410,9 +437,14 @@ button:disabled {
     border-color: rgba(255, 255, 255, 0.2);
 }
 
+.custom-select.open {
+    background: rgba(0, 0, 0, 0.25);
+    border-color: var(--border-focus);
+}
+
 .select-arrow {
     color: var(--topbar-fg-muted);
-    font-size: 10px;
+    font-size: 12px;
     margin-left: 8px;
 }
 
@@ -641,10 +673,45 @@ button:disabled {
     letter-spacing: 0.5px;
     color: var(--map-overlay-fg);
     padding: 2px 0 3px;
-    max-width: 185px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px;
+    cursor: pointer;
+}
+
+.legend-section-title {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+.legend-collapse-btn {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    background: none;
+    border: none;
+    padding: 0;
+    margin-right: 0;
+    cursor: pointer;
+    font-size: 16px;
+    color: var(--map-overlay-fg);
+    opacity: 0.5;
+    line-height: 1;
+    transform: translateX(3px) rotate(90deg);
+    transition: opacity 0.15s, transform 0.2s;
+}
+
+.legend-collapse-btn.collapsed {
+    transform: rotate(-90deg);
+}
+
+.legend-collapse-btn:hover {
+    opacity: 1;
 }
 
 .legend-subtitle {
@@ -1630,6 +1697,8 @@ button:disabled {
     font-size: 12px;
 }
 
+
+
 .commandbar-field input[type="number"] {
     width: 80px;
     padding: 5px 8px;
@@ -1689,11 +1758,87 @@ button:disabled {
     background: var(--bar-fg);
 }
 
-.commandbar-disclaimer {
+
+
+#field-tooltip {
+    display: none;
+    position: fixed;
+    z-index: 99999;
+    background: rgba(15, 25, 45, 0.97);
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 11px;
+    font-family: var(--font-ui);
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: 0;
+    padding: 7px 10px;
+    border-radius: 6px;
+    max-width: 220px;
+    line-height: 1.45;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    pointer-events: none;
+}
+
+.field-tooltip-title {
+    font-weight: 600;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.95);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.field-tooltip-body {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+
+
+#field-tooltip.command-tooltip {
+    background: rgba(10, 30, 60, 0.97);
+}
+
+.field-tooltip-category {
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--border-focus);
+    margin-bottom: 4px;
+    opacity: 0.8;
+}
+
+.field-tooltip-action {
     font-size: 10px;
+    color: var(--border-focus);
+    margin-top: 6px;
+    opacity: 0.7;
+}
+
+#field-tooltip.command-tooltip-busy {
+    background: rgba(20, 20, 25, 0.97);
+}
+
+#field-tooltip.command-tooltip-busy .field-tooltip-category {
+    color: rgba(255, 255, 255, 0.3);
+}
+
+#field-tooltip.command-tooltip-busy .field-tooltip-title {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+#field-tooltip.command-tooltip-busy .field-tooltip-body {
+    color: rgba(255, 255, 255, 0.3);
+}
+
+
+.commandbar-disclaimer {
+    font-size: 9px;
     color: rgba(255, 255, 255, 0.4);
     font-style: italic;
-    margin-left: 10px;
+    margin-left: 2px;
+    margin-right: 4px;
     white-space: normal;
     line-height: 1.4;
 }
@@ -1717,7 +1862,7 @@ button:disabled {
 }
 
 #opt-geometry {
-    width: 220px;
+    width: 194px;
 }
 
 #opt-fetch-resolution {

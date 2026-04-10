@@ -564,13 +564,11 @@ var ToolbarControl = {
             '<a class="toolbar-btn" id="toolbar-grid" href="#" onclick="event.preventDefault();toggleGridMenu()" title="Lat/long grid">#</a>' +
             '<a class="toolbar-btn" id="toolbar-utm" href="#" onclick="event.preventDefault();toggleUtmMenu()" title="UTM zones">▮</a>' +
             '<a class="toolbar-btn toolbar-btn-text" id="toolbar-wmts" href="#" onclick="event.preventDefault();toggleWmtsMenu()" title="BlueTopo WMTS Tiles">BT</a>' +
-            '<a class="toolbar-btn" id="toolbar-credits" href="#" onclick="event.preventDefault();toggleCreditsMenu()" title="Credits">ⓘ</a>' +
             '<a class="toolbar-btn" id="toolbar-version" href="#" onclick="event.preventDefault();toggleVersionMenu()" title="Version">⚙</a>' +
             '<div class="toolbar-menu" id="basemap-menu"></div>' +
             '<div class="toolbar-menu" id="grid-menu"></div>' +
             '<div class="toolbar-menu" id="utm-menu"></div>' +
             '<div class="toolbar-menu" id="wmts-menu"></div>' +
-            '<div class="toolbar-menu" id="credits-menu"></div>' +
             '<div class="toolbar-menu" id="version-menu"></div>';
         return div;
     },
@@ -579,7 +577,7 @@ var ToolbarControl = {
 map.addControl(ToolbarControl, "top-left");
 
 function closeAllMenus() {
-    ["basemap-menu", "grid-menu", "utm-menu", "wmts-menu", "credits-menu", "version-menu"].forEach(function (id) {
+    ["basemap-menu", "grid-menu", "utm-menu", "wmts-menu", "version-menu"].forEach(function (id) {
         var m = document.getElementById(id);
         if (m) m.style.display = "none";
     });
@@ -604,6 +602,23 @@ function toggleCreditsMenu() {
 }
 
 var _cachedUpdates = null;
+var _isReturningUser = false;
+var _recentsLoaded = false;
+var _updateToastShown = false;
+
+function _maybeShowUpdateToast() {
+    if (_updateToastShown || !_recentsLoaded || !_cachedUpdates) return;
+    if (!_cachedUpdates.ui.update_available) return;
+    _updateToastShown = true;
+    var _show = function () {
+        showToast({ icon: "↑", title: "New App Update", body: "noaabathymetry-ui v" + _cachedUpdates.ui.latest + " is available. <a href='https://github.com/noaa-ocs-hydrography/noaabathymetry-ui/releases' target='_blank' style='color:var(--accent)'>View release</a>" }, "toast-welcome");
+    };
+    if (_isReturningUser) {
+        setTimeout(_show, 22000);
+    } else {
+        _show();
+    }
+}
 
 function _renderVersionMenu(versions) {
     var html = '<div class="toolbar-menu-credits">';
@@ -612,8 +627,7 @@ function _renderVersionMenu(versions) {
     if (!_cachedUpdates) {
         html += '<div class="version-check-failed">Checking...</div>';
     } else if (_cachedUpdates.ui.update_available) {
-        html += '<div class="version-update">Update available: v' + _cachedUpdates.ui.latest +
-            ' <a href="https://github.com/noaa-ocs-hydrography/noaabathymetry-ui/releases" target="_blank">View</a></div>';
+        html += '<div class="version-update"><a href="https://github.com/noaa-ocs-hydrography/noaabathymetry-ui/releases" target="_blank">Update available: v' + _cachedUpdates.ui.latest + '</a></div>';
     } else if (_cachedUpdates.ui.update_available === null) {
         html += '<div class="version-check-failed">Could not check for updates</div>';
     } else {
@@ -664,9 +678,7 @@ function _checkUpdatesOnStartup() {
         if (_cachedUpdates.ui.update_available || _cachedUpdates.library.update_available) {
             document.getElementById("toolbar-version").classList.add("version-has-update");
         }
-        if (_cachedUpdates.ui.update_available) {
-            showToast({ icon: "↑", title: "Update Available", body: "noaabathymetry-ui v" + _cachedUpdates.ui.latest + " is available. <a href='https://github.com/noaa-ocs-hydrography/noaabathymetry-ui/releases' target='_blank' style='color:var(--accent)'>View release</a>" }, "toast-welcome");
-        }
+        _maybeShowUpdateToast();
         // Refresh menu if it's currently open
         var menu = document.getElementById("version-menu");
         if (menu && menu.style.display === "block" && _cachedVersions) {
@@ -681,17 +693,22 @@ function toggleBasemapMenu() {
     closeAllMenus();
     if (wasOpen) return;
     menu.innerHTML = "";
-    var header = document.createElement("div"); header.className = "toolbar-menu-header"; header.textContent = "BASEMAP"; menu.appendChild(header);
     basemapNames.forEach(function (name, i) {
         var item = document.createElement("div");
         item.className = "toolbar-menu-item" + (i === basemapIndex ? " active" : "");
         item.textContent = name;
         item.onclick = function () {
             setBasemap(i);
-            menu.style.display = "none";
+            menu.querySelectorAll(".toolbar-menu-item").forEach(function (el) { el.classList.remove("active"); });
+            item.classList.add("active");
         };
         menu.appendChild(item);
     });
+    var sep = document.createElement("div"); sep.className = "toolbar-menu-sep"; menu.appendChild(sep);
+    var credit = document.createElement("div");
+    credit.className = "toolbar-menu-credits";
+    credit.innerHTML = '<div class="credits-section-label">Basemaps</div>© <a href="https://carto.com/" target="_blank">CARTO</a><br>© <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>';
+    menu.appendChild(credit);
     menu.style.display = "block";
 }
 
@@ -1420,10 +1437,30 @@ function getDirName(path) {
     return parts[parts.length - 1] || path;
 }
 
+var remoteLegendCollapsed = false;
+var trackedLegendCollapsed = false;
+
+function toggleRemoteLegend() {
+    remoteLegendCollapsed = !remoteLegendCollapsed;
+    var body = document.getElementById("remote-legend-body");
+    var btn = document.getElementById("remote-legend-collapse-btn");
+    if (body) body.style.display = remoteLegendCollapsed ? "none" : "";
+    if (btn) btn.classList.toggle("collapsed", remoteLegendCollapsed);
+}
+
+function toggleTrackedLegend() {
+    trackedLegendCollapsed = !trackedLegendCollapsed;
+    var body = document.getElementById("tracked-legend-body");
+    var btn = document.getElementById("tracked-legend-collapse-btn");
+    if (body) body.style.display = trackedLegendCollapsed ? "none" : "";
+    if (btn) btn.classList.toggle("collapsed", trackedLegendCollapsed);
+}
+
 function buildLegendHtml() {
     var html = "";
     if (remoteActive) {
-        html += "<div class='legend-section'>NBS " + escapeHtml(remoteSourceLabel || "Source") + "</div>";
+        html += "<div class='legend-section' onclick='toggleRemoteLegend()'><span class='legend-section-title'>NBS " + escapeHtml(remoteSourceLabel || "Source") + "</span><button id='remote-legend-collapse-btn' class='legend-collapse-btn'>›</button></div>";
+        html += "<div id='remote-legend-body'>";
         html += "<div class='legend-subtitle'>Last Delivered</div>";
         var pal = PALETTES[currentPalette];
         var labels = pal.labels || DEFAULT_LABELS;
@@ -1432,14 +1469,17 @@ function buildLegendHtml() {
             html += "<div class='legend-row'><span class='legend-swatch' style='background:rgb(" + c[0] + "," + c[1] + "," + c[2] + ")'></span>" + labels[i] + "</div>";
         }
         html += "<div class='legend-row'><span class='legend-swatch' style='background:rgb(" + pal.null[0] + "," + pal.null[1] + "," + pal.null[2] + ");border:1px solid rgba(255,255,255,0.15)'></span>No delivery</div>";
+        html += "</div>";
     }
     if (trackedActive) {
         if (html) html += "<div class='legend-divider'></div>";
-        html += "<div class='legend-section'>" + escapeHtml(trackedDirName || "Your Project") + "</div>";
+        html += "<div class='legend-section' onclick='toggleTrackedLegend()'><span class='legend-section-title'>" + escapeHtml(trackedDirName || "Your Project") + "</span><button id='tracked-legend-collapse-btn' class='legend-collapse-btn'>›</button></div>";
+        html += "<div id='tracked-legend-body'>";
         var cats = [["up_to_date", "Up to date"], ["updates_available", "Updates available"], ["missing_from_disk", "Missing from disk"], ["removed_from_nbs", "Removed from NBS"]];
         for (var j = 0; j < cats.length; j++) {
             html += "<div class='legend-row'><span class='legend-swatch' style='background:" + TRACKED_COLORS[cats[j][0]] + "'></span>" + cats[j][1] + "</div>";
         }
+        html += "</div>";
     }
     return html;
 }
@@ -1452,6 +1492,10 @@ function updateLegend() {
     legendDiv.className = "map-legend";
     legendDiv.innerHTML = buildLegendHtml();
     container.appendChild(legendDiv);
+    var remoteBody = document.getElementById("remote-legend-body");
+    if (remoteBody && remoteLegendCollapsed) { remoteBody.style.display = "none"; document.getElementById("remote-legend-collapse-btn").classList.add("collapsed"); }
+    var trackedBody = document.getElementById("tracked-legend-body");
+    if (trackedBody && trackedLegendCollapsed) { trackedBody.style.display = "none"; document.getElementById("tracked-legend-collapse-btn").classList.add("collapsed"); }
 }
 
 // ── Layer state ──────────────────────────────────────
