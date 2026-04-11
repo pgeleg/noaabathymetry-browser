@@ -1,0 +1,78 @@
+name: Bug Report
+description: Report something that isn't working correctly
+title: "[Bug] "
+labels: [bug]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What happened? Include steps to reproduce, what you expected vs what actually occurred, and the full traceback if there is one.
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Any other relevant information.
+    validations:
+      required: false
+
+  - type: markdown
+    attributes:
+      value: "## Environment (Optional)"
+
+  - type: markdown
+    attributes:
+      value: |
+        **Checksum** (compare against the checksum on the release page to confirm the download isn't corrupted)
+
+        Run the following in your terminal:
+        _Windows (PowerShell):_ `Get-FileHash "<path to noaabathymetry.exe>" -Algorithm SHA256`
+        _macOS (point to the downloaded zip, not the extracted app):_ `shasum -a 256 "<path to downloaded zip>"`
+
+  - type: input
+    id: checksum
+    attributes:
+      label: Checksum
+      placeholder: e.g. a1b2c3d4e5f6...
+    validations:
+      required: false
+
+  - type: markdown
+    attributes:
+      value: |
+        **Version** (returns both the UI version and the underlying noaabathymetry library version)
+
+        _Windows:_
+        1. Open the app. It's okay if it crashes, just don't close it.
+        2. Run in PowerShell: `ls $env:TEMP\_MEI* | Select-Object FullName, LastWriteTime`
+        3. Using the most recent full path from above: `ls <full path from above>\noaabathymetry*`
+
+        _macOS:_ `ls "<path to noaabathymetry app>/Contents/Frameworks/noaabathymetry*"`
+
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      placeholder: e.g. noaabathymetry_ui-0.1.2.dist-info, noaabathymetry-0.8.1.dist-info
+    validations:
+      required: false
+
+  - type: markdown
+    attributes:
+      value: |
+        **OS Version:**
+
+        Run the following in your terminal:
+        _Windows (PowerShell):_ `[System.Environment]::OSVersion.VersionString`
+        _macOS:_ `sw_vers`
+
+  - type: input
+    id: os
+    attributes:
+      label: OS Version
+      placeholder: e.g. Microsoft Windows NT 10.0.22631.0
+    validations:
+      required: false
