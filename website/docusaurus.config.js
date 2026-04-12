@@ -10,11 +10,11 @@ const config = {
     v4: true,
   },
 
-  url: 'https://noaa-ocs-hydrography.github.io',
-  baseUrl: '/noaabathymetry-ui/',
+  url: 'https://pgeleg.github.io',
+  baseUrl: '/noaabathymetry-browser/',
 
-  organizationName: 'noaa-ocs-hydrography',
-  projectName: 'noaabathymetry-ui',
+  organizationName: 'pgeleg',
+  projectName: 'noaabathymetry-browser',
   trailingSlash: false,
 
   onBrokenLinks: 'throw',
