@@ -3,7 +3,7 @@ import {themes as prismThemes} from 'prism-react-renderer';
 /** @type {import('@docusaurus/types').Config} */
 const config = {
   title: 'NOAA Bathymetry UI',
-  tagline: 'Explore, fetch, and mosaic high-resolution bathymetric data from NOAA\'s National Bathymetric Source.',
+  tagline: 'Get the latest and best public bathymetry.',
   favicon: 'img/favicon.ico',
 
   future: {
@@ -56,8 +56,8 @@ const config = {
       navbar: {
         title: 'NOAA Bathymetry UI',
         logo: {
-          alt: 'NOAA Logo',
-          src: 'img/NOAA-2.png',
+          alt: 'Home',
+          src: 'img/NOAA-1.png',
         },
         items: [
           {

@@ -8,30 +8,22 @@ import styles from './index.module.css';
 const features = [
   {
     title: 'Explore',
-    icon: '🗺',
-    description:
-      'Browse NBS data on an interactive map. Switch between BlueTopo, Modeling, BAG, and S-102 sources. Toggle the NBS Source layer to view tile metadata and coverage.',
+    description: 'Browse on an interactive map',
     link: '/docs/features/explore-map',
   },
   {
     title: 'Fetch',
-    icon: '📥',
-    description:
-      'Draw your area of interest or import geometry, then download tiles directly from the NBS S3 bucket to a local project folder. Filter by resolution and track progress in real time.',
+    description: 'Download tiles to your machine',
     link: '/docs/features/fetch-tiles',
   },
   {
     title: 'Mosaic',
-    icon: '🧩',
-    description:
-      'Merge downloaded tiles into per-UTM-zone VRT mosaics. Generate hillshade overlays, control resolution, and parallelize across zones.',
+    description: 'Merge into unified rasters',
     link: '/docs/features/build-mosaics',
   },
   {
     title: 'Export',
-    icon: '📦',
-    description:
-      'Verify data integrity and package your project into a portable ZIP. Recipients can simply use the files or even continue the project where you left off.',
+    description: 'Package and share your project',
     link: '/docs/features/export-projects',
   },
 ];
@@ -58,21 +50,12 @@ function Hero() {
       <div className="container">
         <div className={styles.heroInner}>
           <div className={styles.heroText}>
+            <img src={require('@site/static/img/NOAA-1.png').default} alt="NOAA" className={styles.heroLogo} />
+            <p className={styles.heroLabel}>National Bathymetric Source</p>
             <Heading as="h1" className={styles.heroTitle}>
               {siteConfig.title}
             </Heading>
             <p className={styles.heroSubtitle}>{siteConfig.tagline}</p>
-            <div className={styles.heroButtons}>
-              <Link className="button button--primary button--lg" to="/docs/getting-started">
-                Get Started
-              </Link>
-              <Link className="button button--outline button--lg" to="/docs/installation">
-                Download
-              </Link>
-            </div>
-          </div>
-          <div className={styles.heroImage}>
-            <img src={require('@site/static/img/noaabathymetry_ui.png').default} alt="NOAA Bathymetry UI screenshot" />
           </div>
         </div>
       </div>
@@ -80,16 +63,15 @@ function Hero() {
   );
 }
 
-function Feature({title, icon, description, link}) {
+function Feature({title, description, link, isLast}) {
   return (
-    <div className={styles.featureCard}>
-      <div className={styles.featureIcon}>{icon}</div>
-      <Heading as="h3" className={styles.featureTitle}>{title}</Heading>
-      <p className={styles.featureDescription}>{description}</p>
-      <Link className={styles.featureLink} to={link}>
-        Learn more &rarr;
+    <>
+      <Link className={styles.featureCard} to={link}>
+        <Heading as="h3" className={styles.featureTitle}>{title}</Heading>
+        <p className={styles.featureDescription}>{description}</p>
       </Link>
-    </div>
+      {!isLast && <div className={styles.featureConnector}><div className={styles.connectorDot} /><div className={styles.connectorLine} /><div className={styles.connectorArrow} /></div>}
+    </>
   );
 }
 
@@ -97,13 +79,9 @@ function Features() {
   return (
     <section className={styles.features}>
       <div className="container">
-        <Heading as="h2" className={styles.sectionTitle}>Features</Heading>
-        <p className={styles.sectionSubtitle}>
-          Everything you need to work with NBS bathymetric data.
-        </p>
         <div className={styles.featuresGrid}>
           {features.map((props, idx) => (
-            <Feature key={idx} {...props} />
+            <Feature key={idx} isLast={idx === features.length - 1} {...props} />
           ))}
         </div>
       </div>
