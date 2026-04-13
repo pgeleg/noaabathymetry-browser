@@ -5,11 +5,11 @@ title: Build Mosaics
 
 # Build Mosaics
 
-The Mosaic command merges your downloaded tiles into per-UTM-zone rasters.
+The Mosaic command merges your downloaded tiles into per-UTM-zone VRT mosaics.
 
 ## What is a mosaic?
 
-After fetching individual tiles, you may want a single continuous raster for your area of interest. The mosaic operation merges tiles that share the same UTM zone into unified GeoTIFF files. If your area spans multiple UTM zones, a separate mosaic is created for each zone.
+After fetching individual tiles, you may want a single continuous raster for your area of interest. The mosaic operation merges tiles that share the same UTM zone into a VRT mosaic. If your area spans multiple UTM zones, a separate mosaic is created for each zone.
 
 ## Options
 
@@ -31,8 +31,8 @@ Controls how many UTM zones are processed in parallel. Each worker handles one U
 
 ## Running a mosaic
 
-1. Ensure you have fetched tiles to your project folder
-2. Select the data source that matches your fetched data
+1. Enter your project directory and select your desired data source
+2. Ensure you have fetched tiles
 3. Optionally configure hillshade, resolution, and workers
 4. Click **Mosaic**
 

@@ -3,7 +3,7 @@ import {themes as prismThemes} from 'prism-react-renderer';
 /** @type {import('@docusaurus/types').Config} */
 const config = {
   title: 'NOAA Bathymetry UI',
-  tagline: 'Browser-based interface for NOAA bathymetric data',
+  tagline: 'Explore, fetch, and mosaic high-resolution bathymetric data from NOAA\'s National Bathymetric Source.',
   favicon: 'img/favicon.ico',
 
   future: {
@@ -36,7 +36,6 @@ const config = {
       /** @type {import('@docusaurus/preset-classic').Options} */
       ({
         docs: {
-          routeBasePath: '/',
           sidebarPath: './sidebars.js',
         },
         blog: false,
@@ -51,7 +50,8 @@ const config = {
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
       colorMode: {
-        respectPrefersColorScheme: true,
+        defaultMode: 'dark',
+        respectPrefersColorScheme: false,
       },
       navbar: {
         title: 'NOAA Bathymetry UI',
@@ -61,14 +61,38 @@ const config = {
         },
         items: [
           {
+            type: 'docSidebar',
+            sidebarId: 'userGuide',
+            position: 'left',
+            label: 'User Guide',
+          },
+          {
             href: 'https://github.com/noaa-ocs-hydrography/noaabathymetry-ui',
-            label: 'GitHub',
             position: 'right',
+            className: 'header-github-link',
+            'aria-label': 'GitHub repository',
           },
         ],
       },
       footer: {
         style: 'dark',
+        links: [
+          {
+            title: 'Documentation',
+            items: [
+              { label: 'Getting Started', to: '/docs/getting-started' },
+              { label: 'Installation', to: '/docs/installation' },
+            ],
+          },
+          {
+            title: 'More',
+            items: [
+              { label: 'noaabathymetry-ui', href: 'https://github.com/noaa-ocs-hydrography/noaabathymetry-ui' },
+              { label: 'noaabathymetry', href: 'https://github.com/noaa-ocs-hydrography/noaabathymetry' },
+              { label: 'National Bathymetric Source', href: 'https://nauticalcharts.noaa.gov/learn/nbs.html' },
+            ],
+          },
+        ],
         copyright: `CC0-1.0 — National Oceanic and Atmospheric Administration`,
       },
       prism: {

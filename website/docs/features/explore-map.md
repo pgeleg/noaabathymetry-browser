@@ -13,8 +13,8 @@ Use the dropdown in the top bar to switch between NBS data formats:
 
 | Source | Description |
 |--------|-------------|
-| **BlueTopo** | GeoTIFF compilations of the best available bathymetric data |
-| **Modeling** | GeoTIFF compilations for hydrodynamic modeling |
+| **BlueTopo** | GeoTIFF compilations of the best available public bathymetric data |
+| **Modeling** | GeoTIFF compilations of the best available public bathymetric data on a low water datum |
 | **BAG** | Bathymetric Attributed Grid files |
 | **S102 v2.1** | IHO S-102 version 2.1 |
 | **S102 v2.2** | IHO S-102 version 2.2 |
@@ -24,7 +24,7 @@ Switching the data source updates which tiles are shown on the map and which til
 
 ## NBS Source layer
 
-Toggle the **NBS Source** layer from the layer controls in the bottom-left corner of the map. This overlay shows the tile scheme — the grid of available tiles from NBS for the selected data source. It helps you see what data is available before you fetch.
+Toggle the **NBS Source** layer from the layer controls in the bottom-left corner of the map. This overlay shows the tile scheme, the grid of available tiles from NBS for the selected data source. It helps you see what data is available before you fetch.
 
 ## Drawing tools
 
@@ -36,12 +36,9 @@ Use the drawing controls on the map to define your area of interest:
 
 ## Click to query
 
-Click anywhere on the map to query bathymetric properties at that location. The query returns information from the NOAA WMS service, including:
+Click on tiles in the NBS Source and Your Project layers to see tile properties.
 
-- **Bathymetry properties** — depth value, uncertainty, and source survey ID
-- **Tile information** — the NBS tile that covers the clicked location
-
-## Tracked layer
+## Your Project layer
 
 When you have a project directory set and have fetched tiles, the map shows the status of your tiles with color-coded overlays:
 
@@ -52,4 +49,4 @@ When you have a project directory set and have fetched tiles, the map shows the 
 | Red | Missing from disk | The tile is tracked but the file is missing locally |
 | Gray | Removed from NBS | The tile was removed from NBS since you downloaded it |
 
-The tracked layer refreshes automatically after a fetch completes.
+The "Your Project" layer refreshes automatically after a fetch completes.

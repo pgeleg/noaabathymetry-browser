@@ -12,7 +12,7 @@ The Export command verifies your data integrity and packages your project into a
 1. **Verifies** downloaded tiles by comparing checksums against NBS records
 2. **Packages** your project folder into a ZIP file
 
-The output ZIP is named `<foldername>_<source>.zip` and saved in your project directory. For example, a project in `~/nyc` using BlueTopo produces `nyc_bluetopo.zip`.
+The output ZIP is named `<foldername>_<datasource>.zip` and saved in your project directory. For example, a project in `~/nyc` using BlueTopo produces `nyc_bluetopo.zip`.
 
 ## Options
 
@@ -30,12 +30,12 @@ Toggle **Flag for Repair** to mark tiles whose checksums don't match the NBS rec
 
 ## Portability
 
-The exported ZIP is portable — recipients can use the files directly and even continue the project themselves, picking up where you left off. This makes it straightforward to share bathymetric data projects with colleagues.
+The exported ZIP is portable. Recipients can simply use the files or even continue the project where you left off by using this app on their own machine and pointing to their unzipped directory as their project directory. This makes it straightforward to share bathymetric data with colleagues.
 
 ## Running an export
 
-1. Ensure you have fetched tiles to your project folder
-2. Select the data source that matches your fetched data
+1. Enter your project directory and select your desired data source
+2. Ensure you have fetched tiles
 3. Configure the Include Mosaics and Flag for Repair options as needed
 4. Click **Export**
 

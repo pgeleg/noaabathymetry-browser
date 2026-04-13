@@ -16,15 +16,12 @@ Download the latest release for your platform. No installation or Python environ
 ## macOS
 
 1. Download the ZIP for your Mac (Apple Silicon or Intel)
-2. Unzip the archive — you'll get a `noaabathymetry.app` bundle
-3. On first launch, macOS Gatekeeper may block the app because it is unsigned. To open it:
-   - Right-click (or Control-click) the app and select **Open**
-   - Click **Open** in the dialog that appears
-   - Alternatively, run the following in Terminal:
-     ```bash
-     xattr -cr /path/to/noaabathymetry.app
-     ```
-4. The app will start a local server and open your default browser automatically
+2. Unzip the archive. You'll get a `noaabathymetry.app` bundle
+3. On first launch, macOS Gatekeeper may block the app because it is unsigned. To open it, run the following in Terminal:
+   ```bash
+   xattr -cr /path/to/noaabathymetry.app
+   ```
+4. The app will launch in your default browser
 
 ## Windows
 
@@ -32,20 +29,18 @@ Download the latest release for your platform. No installation or Python environ
 2. On first run, Windows SmartScreen may show a warning because the app is unsigned:
    - Click **More info**
    - Click **Run anyway**
-3. The app will start a local server and open your default browser automatically
+3. The app will launch in your default browser
 
 ## Verifying downloads
 
-Each release includes SHA-256 checksum files (`.sha256`) alongside the downloads. To verify:
+Each release includes SHA-256 checksum files (`.sha256`) alongside the downloads. To verify, compute the hash of your downloaded file and compare it to the contents of the corresponding `.sha256` file on the release page.
 
 **macOS/Linux:**
 ```bash
-shasum -a 256 -c noaabathymetry-macOS-ARM.zip.sha256
+shasum -a 256 noaabathymetry-macOS-ARM.zip
 ```
 
 **Windows (PowerShell):**
 ```powershell
-(Get-FileHash noaabathymetry.exe -Algorithm SHA256).Hash
+Get-FileHash noaabathymetry.exe -Algorithm SHA256
 ```
-
-Compare the output with the contents of the `.sha256` file from the release.

@@ -7,7 +7,7 @@ title: Getting Started
 
 ## Launching the app
 
-When you run the application, it starts a local web server on `127.0.0.1` (localhost) with a random port and opens your default browser. Only one instance can run at a time — if you try to launch a second instance, you'll see a message indicating the app is already running.
+When you run the application, it launches in your default browser. Only one instance can run at a time. If you try to launch a second instance, you'll see a message indicating the app is already running.
 
 ## First-time walkthrough
 
@@ -33,18 +33,18 @@ The central area shows an interactive map powered by MapLibre GL. You can:
 - Pan and zoom to navigate
 - Use the drawing tool to define areas of interest
 - Toggle the NBS Source layer to see available tile coverage
-- Click on the map to query bathymetry properties at any point
+- Toggle the Your Project layer to see the status of your downloaded tiles
 
 ### Command bar
 
 Three command buttons at the bottom of the screen:
 
 - **Fetch** — Download tiles from NBS
-- **Mosaic** — Build merged rasters from your tiles
+- **Mosaic** — Build per-UTM-zone VRT mosaics from your tiles
 - **Export** — Package your project as a portable ZIP
 
 Each command has configurable options in its row. Hover over any field or button to see a tooltip explaining what it does.
 
 ### Output log
 
-Click the output bar to expand the log panel. This shows real-time progress and messages from the currently running command, including download progress bars and processing status.
+Click the output bar to expand the log panel. This shows real-time progress and messages from the currently running command, including download progress and processing status.

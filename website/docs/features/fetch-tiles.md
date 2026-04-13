@@ -15,7 +15,7 @@ Before fetching, set your project folder in the **Your Project** field in the to
 - **Browse** — click the Browse button to open a folder picker
 - **Select a recent project** — click the field to see your recent projects
 
-The folder will be created automatically if it doesn't exist.
+The folder will be created automatically during fetch if it doesn't exist.
 
 ## Defining your area of interest
 
@@ -26,7 +26,7 @@ The **Geometry** field accepts your area of interest in several ways:
 - **Browse for a file** — click the **...** button to select a geometry file (GeoPackage, Shapefile, GeoJSON, or KML)
 - **Type a file path** — autocomplete suggestions appear for file paths
 
-## Resolution filter
+## Only Resolution(s)
 
 The **Only Resolution(s)** field lets you limit which tiles are downloaded based on their resolution in meters. Leave it blank to fetch all available resolutions.
 
@@ -45,8 +45,8 @@ This would only download tiles at 4-meter and 8-meter resolution.
 3. Optionally set a resolution filter
 4. Click **Fetch**
 
-The output log will open and show real-time progress, including a progress bar with tile count and estimated time remaining. The status bar shows "Fetching..." while the operation is running.
+The output log will open and show real-time progress, including tile count and estimated time remaining. The status bar shows "Fetching..." while the operation is running.
 
 ## Canceling
 
-Only one command can run at a time. If you need to stop a fetch in progress, you can close the app and restart it. The next fetch will pick up from where it left off, as tiles that have already been downloaded and are up-to-date will be skipped.
+Only one command can run at a time. There is currently no cancel button. If you need to stop a fetch in progress, you can close the app.
