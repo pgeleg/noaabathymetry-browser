@@ -1,7 +1,11 @@
 <h1 align="center">NOAA Bathymetry UI</h1>
 
 <p align="center">
-Browser-based interface for the <a href="https://github.com/noaa-ocs-hydrography/noaabathymetry">noaabathymetry</a> Python package.
+Get the latest and best public bathymetry.
+</p>
+
+<p align="center">
+<a href="https://noaa-ocs-hydrography.github.io/noaabathymetry-ui/">Documentation</a>
 </p>
 
 ![noaabathymetry-ui](assets/noaabathymetry_ui.png)
@@ -14,11 +18,7 @@ Browser-based interface for the <a href="https://github.com/noaa-ocs-hydrography
 | macOS (Intel) | [Download](https://github.com/noaa-ocs-hydrography/noaabathymetry-ui/releases/latest/download/noaabathymetry-macOS-Intel.zip) |
 | Windows | [Download](https://github.com/noaa-ocs-hydrography/noaabathymetry-ui/releases/latest/download/noaabathymetry.exe) |
 
-No installation or Python environment required.
-
-## Overview
-
-This is a browser-based UI for [noaabathymetry](https://github.com/noaa-ocs-hydrography/noaabathymetry). Explore NBS data on an interactive map, fetch tiles in your area of interest, build mosaics, and export your project as a portable zip.
+No installation or Python environment required. Just download and run.
 
 ## Background
 

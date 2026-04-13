@@ -20,6 +20,10 @@ Use the dropdown in the top bar to switch between NBS data formats:
 | **S102 v2.2** | IHO S-102 version 2.2 |
 | **S102 v3.0** | IHO S-102 version 3.0 |
 
+:::note
+S-102 data are for test and evaluation and should not be used for navigation.
+:::
+
 Switching the data source updates which tiles are shown on the map and which tiles will be fetched.
 
 ## NBS Source layer

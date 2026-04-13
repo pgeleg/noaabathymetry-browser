@@ -21,6 +21,10 @@ This data provides depth measurements nationwide, along with vertical uncertaint
 | **BAG** | Bathymetric Attributed Grid files |
 | **S-102** | IHO S-102 standard (versions 2.1, 2.2, and 3.0) |
 
+:::note
+S-102 data are for test and evaluation and should not be used for navigation.
+:::
+
 ## Workflow
 
 The typical workflow with NOAA Bathymetry UI is:

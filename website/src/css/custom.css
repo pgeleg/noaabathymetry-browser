@@ -92,22 +92,6 @@
   display: flex !important;
 }
 
-/* Override Docusaurus hiding the color mode toggle on small viewports */
-div[class*='colorModeToggle'] {
-  display: flex !important;
-}
-
-/* Color mode toggle — opacity fade instead of circle highlight */
-button[class*='toggleButton'] {
-  border-radius: 0;
-  opacity: 0.5;
-  transition: opacity 0.15s ease;
-}
-
-button[class*='toggleButton']:hover {
-  background: none !important;
-  opacity: 1;
-}
 
 .navbar__title {
   font-weight: 600;
