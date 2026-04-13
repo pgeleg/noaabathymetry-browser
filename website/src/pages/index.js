@@ -108,10 +108,8 @@ function Downloads() {
           {platforms.map((p, idx) => (
             <a key={idx} className={styles.downloadLink} href={p.url}>
               <span className={styles.downloadIcon}>{p.icon}</span>
-              <span className={styles.downloadLabel}>
-                <span>{p.label}</span>
-                {p.sub && <span className={styles.downloadSub}>{p.sub}</span>}
-              </span>
+              <span>{p.label}</span>
+              {p.sub && <span className={styles.downloadSub}>{p.sub}</span>}
             </a>
           ))}
         </div>
