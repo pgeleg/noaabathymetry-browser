@@ -4,8 +4,6 @@
 Get the latest and best public bathymetry
 </p>
 
-![noaabathymetry-ui](assets/noaabathymetry_ui.png)
-
 ## Overview
 
 Browser-based interface for the [noaabathymetry](https://github.com/noaa-ocs-hydrography/noaabathymetry) Python package. Explore NBS data on an interactive map, fetch tiles in your area of interest, build mosaics, and export your project as a portable zip.
@@ -21,6 +19,8 @@ See the [documentation](https://noaa-ocs-hydrography.github.io/noaabathymetry-ui
 | Windows | [Download](https://github.com/noaa-ocs-hydrography/noaabathymetry-ui/releases/latest/download/noaabathymetry.exe) |
 
 No installation or Python environment required. Just download and run.
+
+![noaabathymetry-ui](assets/noaabathymetry_ui.png)
 
 ## Background
 
